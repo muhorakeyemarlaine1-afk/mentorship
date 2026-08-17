@@ -60,11 +60,14 @@ export function Navbar({
                 </div>
 
                 <div className="flex items-center gap-3 flex-shrink-0">
-                    <button className="hidden md:block text-sm font-semibold text-[#1B4B8A] hover:underline">
-                        Sign In
-                    </button>
                     <Link
-                        href="/#join"
+                        href="/signin"
+                        className="hidden md:block text-sm font-semibold text-[#1B4B8A] hover:underline"
+                    >
+                        Sign In
+                    </Link>
+                    <Link
+                        href="/get-started"
                         className="bg-[#E07830] text-white text-sm font-bold px-5 py-2.5 rounded-full hover:bg-[#C96820] transition-all hover:scale-105 active:scale-100 shadow-sm"
                     >
                         Get Started Free

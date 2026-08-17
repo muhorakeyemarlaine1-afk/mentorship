@@ -1199,9 +1199,12 @@ export default function App() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                        <button className="border-2 border-[#1B4B8A] text-[#1B4B8A] font-bold px-8 py-3.5 rounded-full hover:bg-[#1B4B8A] hover:text-white transition-all text-sm">
+                        <Link
+                            href="/become-mentor"
+                            className="border-2 border-[#1B4B8A] text-[#1B4B8A] font-bold px-8 py-3.5 rounded-full hover:bg-[#1B4B8A] hover:text-white transition-all text-sm text-center"
+                        >
                             Become a Mentor
-                        </button>
+                        </Link>
                         <a
                             href="https://globalyouthemerge.org"
                             target="_blank"
