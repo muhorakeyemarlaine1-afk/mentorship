@@ -1,18 +1,11 @@
 'use client'
 
 import { useState } from "react"
+import Link from "next/link"
+import { Navbar } from "@/components/Navbar"
 
 const LOGO_URL =
     "https://globalyouthemerge.org/wp-content/uploads/2025/05/Logo-global-youth.png"
-
-const NAV_LINKS = [
-    { label: "Home", href: "#home" },
-    { label: "Our Mentors", href: "#mentors" },
-    { label: "How It Works", href: "#how-it-works" },
-    { label: "Impact", href: "#impact" },
-    { label: "Stories", href: "#stories" },
-    { label: "Join Us", href: "#join" },
-]
 
 const CATEGORIES = [
     {
@@ -455,9 +448,7 @@ const STATS = [
 ]
 
 export default function App() {
-    const [page, setPage] = useState<"home" | "mentors">("home")
     const [activeCategory, setActiveCategory] = useState<number | null>(null)
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const [activeTestimonial, setActiveTestimonial] = useState(0)
 
     return (
@@ -466,105 +457,7 @@ export default function App() {
             className="bg-white text-[#0D1F3C]"
         >
             {/* ── NAV ─────────────────────────────────────────────────── */}
-            <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#E2EAF4]">
-                <div className="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between gap-6">
-                    {/* Logo */}
-                    <a
-                        href="#home"
-                        className="flex items-center gap-3 flex-shrink-0"
-                    >
-                        <img
-                            src={LOGO_URL}
-                            alt="Global Youth Emerge"
-                            className="h-10 w-auto object-contain"
-                        />
-                        <div className="hidden sm:block">
-                            <div className="text-[10px] font-semibold text-[#1B4B8A] uppercase tracking-widest leading-none">
-                                Mentorship
-                            </div>
-                            <div className="text-[11px] text-[#6B84A3] leading-none mt-0.5">
-                                by Global Youth Emerge
-                            </div>
-                        </div>
-                    </a>
-
-                    {/* Desktop links */}
-                    <div className="hidden lg:flex items-center gap-7">
-                        {NAV_LINKS.map((link) =>
-                            link.label === "Our Mentors" ? (
-                                <button
-                                    key={link.label}
-                                    onClick={() => setPage("mentors")}
-                                    className="text-sm font-medium text-[#1B4B8A] hover:underline transition-colors font-semibold"
-                                >
-                                    {link.label}
-                                </button>
-                            ) : (
-                                <a
-                                    key={link.label}
-                                    href={link.href}
-                                    className="text-sm font-medium text-[#4A6080] hover:text-[#1B4B8A] transition-colors"
-                                >
-                                    {link.label}
-                                </a>
-                            ),
-                        )}
-                    </div>
-
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                        <button className="hidden md:block text-sm font-semibold text-[#1B4B8A] hover:underline">
-                            Sign In
-                        </button>
-                        <a
-                            href="#join"
-                            className="bg-[#E07830] text-white text-sm font-bold px-5 py-2.5 rounded-full hover:bg-[#C96820] transition-all hover:scale-105 active:scale-100 shadow-sm"
-                        >
-                            Get Started Free
-                        </a>
-                        <button
-                            className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        >
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                className="w-5 h-5 text-[#1B4B8A]"
-                            >
-                                {mobileMenuOpen ? (
-                                    <path
-                                        d="M6 6l12 12M6 18L18 6"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                    />
-                                ) : (
-                                    <path
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                    />
-                                )}
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                {mobileMenuOpen && (
-                    <div className="lg:hidden bg-white border-t border-[#E2EAF4] px-5 py-4 flex flex-col gap-3">
-                        {NAV_LINKS.map((link) => (
-                            <a
-                                key={link.label}
-                                href={link.href}
-                                className="text-sm font-medium text-[#0D1F3C] py-1"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                {link.label}
-                            </a>
-                        ))}
-                    </div>
-                )}
-            </nav>
+            <Navbar />
 
             {/* ── HERO ─────────────────────────────────────────────────── */}
             <section
@@ -611,12 +504,12 @@ export default function App() {
                             </p>
 
                             <div className="flex flex-col sm:flex-row gap-4 mb-14">
-                                <button
-                                    onClick={() => setPage("mentors")}
+                                <Link
+                                    href="/mentors"
                                     className="bg-[#E07830] text-white font-bold text-base px-8 py-4 rounded-full hover:bg-[#C96820] transition-all hover:scale-105 active:scale-100 shadow-lg text-center"
                                 >
                                     Find My Mentor
-                                </button>
+                                </Link>
                                 <a
                                     href="#how-it-works"
                                     className="border border-white/30 text-white font-semibold text-base px-8 py-4 rounded-full hover:bg-white/10 transition-all flex items-center gap-2 justify-center"
@@ -883,12 +776,12 @@ export default function App() {
                         >
                             Create Your Free Profile
                         </a>
-                        <button
-                            onClick={() => setPage("mentors")}
+                        <Link
+                            href="/mentors"
                             className="border-2 border-[#1B4B8A] text-[#1B4B8A] font-bold px-10 py-4 rounded-full hover:bg-[#1B4B8A] hover:text-white transition-all text-center"
                         >
                             Browse All Mentors
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </section>
@@ -985,12 +878,12 @@ export default function App() {
                 </div>
 
                 <div className="text-center mt-10">
-                    <button
-                        onClick={() => setPage("mentors")}
-                        className="border-2 border-[#1B4B8A] text-[#1B4B8A] font-bold px-8 py-4 rounded-full hover:bg-[#1B4B8A] hover:text-white transition-all"
+                    <Link
+                        href="/mentors"
+                        className="border-2 border-[#1B4B8A] text-[#1B4B8A] font-bold px-8 py-4 rounded-full hover:bg-[#1B4B8A] hover:text-white transition-all inline-block"
                     >
                         View All 1,117 Mentors
-                    </button>
+                    </Link>
                 </div>
             </section>
 

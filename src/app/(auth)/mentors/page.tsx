@@ -1,6 +1,7 @@
-'use client'
+"use client"
 
 import { useState } from "react"
+import { Navbar } from "@/components/Navbar"
 
 const LOGO_URL =
     "https://globalyouthemerge.org/wp-content/uploads/2025/05/Logo-global-youth.png"
@@ -1359,11 +1360,10 @@ function MentorCard({
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export default function MentorsPage({ onBack }: { onBack: () => void }) {
+export default function MentorsPage() {
     const [activeCategory, setActiveCategory] = useState("career")
     const [search, setSearch] = useState("")
     const [filterAvailable, setFilterAvailable] = useState(false)
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
     const current = CATEGORIES.find((c) => c.id === activeCategory)!
 
@@ -1387,162 +1387,15 @@ export default function MentorsPage({ onBack }: { onBack: () => void }) {
     return (
         <div
             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-            className="min-h-screen bg-[#F4F7FB]"
+            className="min-h-screen bg-white"
         >
             {/* ── NAV ─────────────────────────────────────────────────── */}
-            <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#E2EAF4]">
-                <div className="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between gap-6">
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={onBack}
-                            className="p-2 rounded-xl hover:bg-[#EEF3FA] transition-colors text-[#1B4B8A]"
-                            title="Back to home"
-                        >
-                            <svg
-                                viewBox="0 0 20 20"
-                                fill="none"
-                                className="w-5 h-5"
-                            >
-                                <path
-                                    d="M12 4L6 10l6 6"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                />
-                            </svg>
-                        </button>
-                        <img
-                            src={LOGO_URL}
-                            alt="Global Youth Emerge"
-                            className="h-9 w-auto object-contain"
-                        />
-                        <div className="hidden sm:block">
-                            <div className="text-[10px] font-semibold text-[#1B4B8A] uppercase tracking-widest leading-none">
-                                Mentors Directory
-                            </div>
-                            <div className="text-[11px] text-[#6B84A3] leading-none mt-0.5">
-                                {totalMentors} human mentors · 10 AI mentors
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="hidden md:flex items-center gap-3">
-                        <div className="relative">
-                            <svg
-                                viewBox="0 0 20 20"
-                                fill="none"
-                                className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CAFC8]"
-                            >
-                                <circle
-                                    cx="8.5"
-                                    cy="8.5"
-                                    r="5.5"
-                                    stroke="currentColor"
-                                    strokeWidth="1.5"
-                                />
-                                <path
-                                    d="M13 13l3.5 3.5"
-                                    stroke="currentColor"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                />
-                            </svg>
-                            <input
-                                type="text"
-                                placeholder="Search mentors, skills, topics…"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="pl-9 pr-4 py-2.5 rounded-full border border-[#D9E5F5] text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] w-72 transition-colors"
-                            />
-                        </div>
-                        <button
-                            onClick={() => setFilterAvailable(!filterAvailable)}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium transition-all"
-                            style={{
-                                borderColor: filterAvailable
-                                    ? "#1B4B8A"
-                                    : "#D9E5F5",
-                                backgroundColor: filterAvailable
-                                    ? "#EEF3FA"
-                                    : "white",
-                                color: filterAvailable ? "#1B4B8A" : "#6B84A3",
-                            }}
-                        >
-                            <span
-                                className={`w-2 h-2 rounded-full ${filterAvailable ? "bg-[#1B4B8A]" : "bg-[#D1D5DB]"}`}
-                            />
-                            Available Now
-                        </button>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <button className="hidden md:block text-sm font-semibold text-[#1B4B8A] hover:underline">
-                            Sign In
-                        </button>
-                        <button className="bg-[#E07830] text-white text-sm font-bold px-5 py-2.5 rounded-full hover:bg-[#C96820] transition-all hover:scale-105">
-                            Get Started Free
-                        </button>
-                        <button
-                            className="md:hidden p-2 rounded-lg hover:bg-gray-100"
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        >
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                className="w-5 h-5 text-[#1B4B8A]"
-                            >
-                                {mobileMenuOpen ? (
-                                    <path
-                                        d="M6 6l12 12M6 18L18 6"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                    />
-                                ) : (
-                                    <path
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                    />
-                                )}
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Mobile search */}
-                {mobileMenuOpen && (
-                    <div className="md:hidden bg-white border-t border-[#E2EAF4] px-5 py-4 flex flex-col gap-3">
-                        <input
-                            type="text"
-                            placeholder="Search mentors…"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="w-full px-4 py-2.5 rounded-full border border-[#D9E5F5] text-sm focus:outline-none focus:border-[#1B4B8A]"
-                        />
-                        <button
-                            onClick={() => setFilterAvailable(!filterAvailable)}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium w-fit"
-                            style={{
-                                borderColor: filterAvailable
-                                    ? "#1B4B8A"
-                                    : "#D9E5F5",
-                                backgroundColor: filterAvailable
-                                    ? "#EEF3FA"
-                                    : "white",
-                                color: filterAvailable ? "#1B4B8A" : "#6B84A3",
-                            }}
-                        >
-                            <span
-                                className={`w-2 h-2 rounded-full ${filterAvailable ? "bg-[#1B4B8A]" : "bg-[#D1D5DB]"}`}
-                            />
-                            Available Now
-                        </button>
-                    </div>
-                )}
-            </nav>
+            <Navbar
+                search={search}
+                onSearchChange={setSearch}
+                filterAvailable={filterAvailable}
+                onToggleFilter={() => setFilterAvailable(!filterAvailable)}
+            />
 
             {/* ── PAGE HEADER ────────────────────────────────────────── */}
             <div className="pt-16 bg-[#0D2B5E] relative overflow-hidden">
