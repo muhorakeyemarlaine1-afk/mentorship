@@ -37,7 +37,7 @@ export function Navbar({
                 <div className="flex items-center gap-6 min-w-0">
                     <Link
                         href="/"
-                        className="flex items-center gap-3 flex-shrink-0"
+                        className="flex items-center gap-3 shrink-0"
                     >
                         <img
                             src={LOGO_URL}
@@ -59,7 +59,7 @@ export function Navbar({
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 flex-shrink-0">
+                <div className="flex items-center gap-3 shrink-0">
                     <Link
                         href="/signin"
                         className="hidden md:block text-sm font-semibold text-[#1B4B8A] hover:underline"
