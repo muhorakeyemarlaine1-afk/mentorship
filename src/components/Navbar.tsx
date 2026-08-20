@@ -8,7 +8,7 @@ const LOGO_URL =
 
 const NAV_LINKS = [
     { label: "Home", href: "/#home" },
-    { label: "Our Mentors", href: "/mentors" },
+    { label: "Our Mentors", href: "/our-mentors" },
     { label: "How It Works", href: "/#how-it-works" },
     { label: "Impact", href: "/#impact" },
     { label: "Stories", href: "/#stories" },

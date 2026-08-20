@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Navbar } from "@/components/Navbar"
 
 const LOGO_URL =
@@ -19,8 +20,6 @@ interface Mentor {
     sessions: number
     img: string
     available: boolean
-    isAI?: boolean
-    aiDescription?: string
 }
 
 interface Category {
@@ -32,30 +31,6 @@ interface Category {
     icon: React.ReactNode
     mentors: Mentor[]
 }
-
-// ── AI Mentor factory ────────────────────────────────────────────────────────
-
-const aiMentor = (
-    id: string,
-    name: string,
-    role: string,
-    bio: string,
-    tags: string[],
-    aiDescription: string,
-): Mentor => ({
-    id,
-    name,
-    role,
-    org: "GYE AI Platform",
-    bio,
-    tags,
-    rating: 4.9,
-    sessions: 99999,
-    img: "",
-    available: true,
-    isAI: true,
-    aiDescription,
-})
 
 // ── Mentor Data ──────────────────────────────────────────────────────────────
 
@@ -88,20 +63,6 @@ const CATEGORIES: Category[] = [
             </svg>
         ),
         mentors: [
-            aiMentor(
-                "ai-career",
-                "CareerGuide AI",
-                "AI Career Development Assistant",
-                "Your always-on career advisor. Get instant CV reviews, interview prep, job search strategy, salary negotiation tips, and career path mapping — 24/7, tailored to your goals.",
-                [
-                    "CV Review",
-                    "Interview Prep",
-                    "Job Search",
-                    "Career Mapping",
-                    "Salary Negotiation",
-                ],
-                "Powered by GYE's career intelligence model trained on 50,000+ career journeys across Africa and the global diaspora.",
-            ),
             {
                 id: "c1",
                 name: "Chidi Okafor",
@@ -177,20 +138,6 @@ const CATEGORIES: Category[] = [
             </svg>
         ),
         mentors: [
-            aiMentor(
-                "ai-entrepreneurship",
-                "VentureAI",
-                "AI Entrepreneurship & Business Advisor",
-                "Your startup co-pilot. From validating your idea to building a pitch deck, drafting a business plan, or modeling unit economics — VentureAI helps at every stage of the founder journey.",
-                [
-                    "Business Plan",
-                    "Pitch Deck",
-                    "Market Research",
-                    "Funding Strategy",
-                    "Lean Canvas",
-                ],
-                "Trained on 10,000+ startup case studies, African market data, and venture capital playbooks from Nairobi to Silicon Valley.",
-            ),
             {
                 id: "e1",
                 name: "Kwame Asante",
@@ -274,20 +221,6 @@ const CATEGORIES: Category[] = [
             </svg>
         ),
         mentors: [
-            aiMentor(
-                "ai-education",
-                "ScholarAI",
-                "AI Education & Scholarship Advisor",
-                "Your personal scholarship hunter. ScholarAI scans thousands of scholarships, crafts tailored application essays, prepares you for interviews, and tracks deadlines — so you never miss an opportunity.",
-                [
-                    "Scholarship Search",
-                    "Essay Writing",
-                    "University Selection",
-                    "Application Strategy",
-                    "Interview Prep",
-                ],
-                "Trained on 5,000+ successful scholarship applications, admissions patterns from 200 universities, and financial aid frameworks across 40 countries.",
-            ),
             {
                 id: "ed1",
                 name: "Zara Okonkwo",
@@ -385,20 +318,6 @@ const CATEGORIES: Category[] = [
             </svg>
         ),
         mentors: [
-            aiMentor(
-                "ai-technology",
-                "TechGuide AI",
-                "AI Technology & Software Engineering Mentor",
-                "Your coding co-pilot and tech career guide. Debug code, plan your learning roadmap, prepare for technical interviews at top companies, and get expert guidance on AI, data science, and software engineering.",
-                [
-                    "Coding Help",
-                    "Technical Interviews",
-                    "Learning Roadmap",
-                    "Data Science",
-                    "AI & ML",
-                ],
-                "Powered by GPT-4 level code understanding, trained on 1M+ coding solutions, interview questions from FAANG companies, and African tech ecosystem insights.",
-            ),
             {
                 id: "t1",
                 name: "Amara Diallo",
@@ -472,20 +391,6 @@ const CATEGORIES: Category[] = [
             </svg>
         ),
         mentors: [
-            aiMentor(
-                "ai-mental-health",
-                "WellnessAI",
-                "AI Mental Health & Wellness Companion",
-                "A safe, judgment-free space available anytime. WellnessAI offers evidence-based coping strategies, guided breathing, journaling prompts, and stress management techniques. Not a replacement for clinical care — a compassionate first step.",
-                [
-                    "Stress Management",
-                    "Coping Strategies",
-                    "Journaling",
-                    "Breathing Exercises",
-                    "Mindfulness",
-                ],
-                "Built with trauma-informed design principles. Recognises when to refer to licensed professionals. Available in English, Swahili, French, and Hausa.",
-            ),
             {
                 id: "mh1",
                 name: "Naledi Sithole",
@@ -586,20 +491,6 @@ const CATEGORIES: Category[] = [
             </svg>
         ),
         mentors: [
-            aiMentor(
-                "ai-finance",
-                "FinanceAI",
-                "AI Financial Literacy & Money Coach",
-                "Your personal money mentor. FinanceAI teaches budgeting, saving strategies, investment basics, debt management, and how to build wealth starting from zero. Get a personalised financial plan in minutes.",
-                [
-                    "Budgeting",
-                    "Savings Plan",
-                    "Investment Basics",
-                    "Debt Management",
-                    "Financial Planning",
-                ],
-                "Trained on African financial markets, mobile money ecosystems (M-Pesa, OPay, Wave), and global personal finance principles adapted for youth.",
-            ),
             {
                 id: "fl1",
                 name: "Obiageli Nwosu",
@@ -682,20 +573,6 @@ const CATEGORIES: Category[] = [
             </svg>
         ),
         mentors: [
-            aiMentor(
-                "ai-leadership",
-                "LeadAI",
-                "AI Leadership Development Coach",
-                "Your leadership sparring partner. Develop your communication style, practice public speaking scenarios, work through team conflict simulations, and get personalised leadership assessments and growth plans.",
-                [
-                    "Communication",
-                    "Public Speaking",
-                    "Team Management",
-                    "Conflict Resolution",
-                    "Leadership Styles",
-                ],
-                "Built on leadership frameworks from Harvard, CCL, and African leadership traditions. Includes situational leadership simulations and 360-degree feedback tools.",
-            ),
             {
                 id: "l1",
                 name: "Adewale Bankole",
@@ -794,20 +671,6 @@ const CATEGORIES: Category[] = [
             </svg>
         ),
         mentors: [
-            aiMentor(
-                "ai-women",
-                "EmpowerAI",
-                "AI Women Empowerment & Confidence Coach",
-                "A dedicated space for young women. EmpowerAI helps you navigate gender barriers, build unshakeable confidence, assert boundaries professionally, prepare for male-dominated industries, and connect with networks designed to elevate women.",
-                [
-                    "Confidence Building",
-                    "Navigating Gender Bias",
-                    "Networking",
-                    "Negotiation",
-                    "Leadership for Women",
-                ],
-                "Designed with African feminist scholars, women's rights organisations, and data from 8,000+ women's career journeys. Trauma-sensitive and culturally aware.",
-            ),
             {
                 id: "we1",
                 name: "Chioma Osuji",
@@ -885,20 +748,6 @@ const CATEGORIES: Category[] = [
             </svg>
         ),
         mentors: [
-            aiMentor(
-                "ai-life-coaching",
-                "CoachAI",
-                "AI Life Coach & Personal Development Guide",
-                "Your 24/7 personal development partner. CoachAI helps you set meaningful goals, build consistent habits, overcome procrastination, clarify your values, and design a life that aligns with who you truly want to become.",
-                [
-                    "Goal Setting",
-                    "Habit Building",
-                    "Values Clarification",
-                    "Productivity",
-                    "Life Design",
-                ],
-                "Trained on ICF coaching frameworks, behavioural science, and positive psychology. Personalises sessions based on your personality type, goals, and progress history.",
-            ),
             {
                 id: "lc1",
                 name: "Isaac Mensah",
@@ -996,20 +845,6 @@ const CATEGORIES: Category[] = [
             </svg>
         ),
         mentors: [
-            aiMentor(
-                "ai-agriculture",
-                "AgroAI",
-                "AI Agriculture & Green Economy Advisor",
-                "Your smart farming and green business guide. AgroAI provides crop advisory, agribusiness planning, climate-smart farming techniques, and guidance on accessing agricultural grants and markets — tailored for African conditions.",
-                [
-                    "Crop Advisory",
-                    "Agribusiness Planning",
-                    "Climate-Smart Farming",
-                    "Green Finance",
-                    "Market Access",
-                ],
-                "Trained on African soil science databases, CGIAR research, FAO agricultural data, and climate modelling for sub-Saharan Africa. Supports 15 African languages.",
-            ),
             {
                 id: "ag1",
                 name: "Dr. Wanjiku Kamau",
@@ -1074,178 +909,58 @@ const CATEGORIES: Category[] = [
     },
 ]
 
-// ── Subcomponents ────────────────────────────────────────────────────────────
-
-function AIMentorCard({
-    mentor,
-    categoryColor,
-}: {
-    mentor: Mentor
-    categoryColor: string
-}) {
-    return (
-        <div
-            className="rounded-2xl overflow-hidden border-2 relative"
-            style={{
-                borderColor: categoryColor,
-                background: `linear-gradient(135deg, ${categoryColor}08 0%, ${categoryColor}18 100%)`,
-            }}
-        >
-            {/* AI badge ribbon */}
-            <div
-                className="absolute top-0 right-0 text-white text-[10px] font-extrabold px-3 py-1 rounded-bl-xl tracking-wider"
-                style={{ backgroundColor: categoryColor }}
-            >
-                AI MENTOR
-            </div>
-
-            <div className="p-6">
-                {/* Avatar */}
-                <div
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
-                    style={{ backgroundColor: categoryColor + "22" }}
-                >
-                    <svg
-                        viewBox="0 0 48 48"
-                        fill="none"
-                        className="w-9 h-9"
-                        style={{ color: categoryColor }}
-                    >
-                        <rect
-                            x="6"
-                            y="6"
-                            width="36"
-                            height="36"
-                            rx="10"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            fill="currentColor"
-                            fillOpacity="0.08"
-                        />
-                        <circle
-                            cx="24"
-                            cy="19"
-                            r="5"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                        />
-                        <path
-                            d="M14 37v-1a10 10 0 0120 0v1"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                        />
-                        <path
-                            d="M30 8l3 3-3 3M34 11h-6"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        />
-                        <circle cx="36" cy="36" r="6" fill={categoryColor} />
-                        <path
-                            d="M33 36l2 2 4-4"
-                            stroke="white"
-                            strokeWidth="1.8"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        />
-                    </svg>
-                </div>
-
-                <h3 className="font-extrabold text-[#0D1F3C] text-lg leading-tight">
-                    {mentor.name}
-                </h3>
-                <p
-                    style={{
-                        fontFamily: "'DM Sans', sans-serif",
-                        color: categoryColor,
-                    }}
-                    className="text-sm mt-0.5 mb-3"
-                >
-                    {mentor.role}
-                </p>
-                <p
-                    style={{ fontFamily: "'DM Sans', sans-serif" }}
-                    className="text-[#4A6080] text-sm leading-relaxed mb-4"
-                >
-                    {mentor.bio}
-                </p>
-                <p
-                    style={{
-                        fontFamily: "'DM Sans', sans-serif",
-                        borderLeftColor: categoryColor,
-                    }}
-                    className="text-xs text-[#6B84A3] italic border-l-2 pl-3 mb-5 leading-relaxed"
-                >
-                    {mentor.aiDescription}
-                </p>
-
-                {/* Tags */}
-                <div className="flex flex-wrap gap-1.5 mb-5">
-                    {mentor.tags.map((tag) => (
-                        <span
-                            key={tag}
-                            className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                            style={{
-                                backgroundColor: categoryColor + "18",
-                                color: categoryColor,
-                            }}
-                        >
-                            {tag}
-                        </span>
-                    ))}
-                </div>
-
-                {/* Stats */}
-                <div
-                    className="flex items-center gap-4 mb-5 pb-5 border-b"
-                    style={{ borderColor: categoryColor + "22" }}
-                >
-                    <div>
-                        <div className="text-xs text-[#9CAFC8]">Sessions</div>
-                        <div className="font-extrabold text-[#0D1F3C]">∞</div>
-                    </div>
-                    <div>
-                        <div className="text-xs text-[#9CAFC8]">
-                            Availability
-                        </div>
-                        <div className="font-extrabold text-[#0D1F3C]">
-                            24/7
-                        </div>
-                    </div>
-                    <div>
-                        <div className="text-xs text-[#9CAFC8]">Response</div>
-                        <div className="font-extrabold text-[#0D1F3C]">
-                            Instant
-                        </div>
-                    </div>
-                </div>
-
-                <button
-                    className="w-full py-3 rounded-full text-white text-sm font-bold transition-all hover:scale-[1.02] active:scale-100 shadow-md flex items-center justify-center gap-2"
-                    style={{ backgroundColor: categoryColor }}
-                >
-                    <svg viewBox="0 0 20 20" fill="none" className="w-4 h-4">
-                        <path
-                            d="M10 2a7 7 0 100 14A7 7 0 0010 2z"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                        />
-                        <path
-                            d="M7 10l2 2 4-4"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        />
-                    </svg>
-                    Start AI Session — Free
-                </button>
-            </div>
-        </div>
-    )
+const ALL_CATEGORY: Category = {
+    id: "all",
+    label: "All",
+    color: "#1B4B8A",
+    bg: "#EEF3FA",
+    textOnColor: "#fff",
+    icon: (
+        <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+            <rect
+                x="3"
+                y="3"
+                width="7"
+                height="7"
+                rx="1.5"
+                stroke="currentColor"
+                strokeWidth="1.8"
+            />
+            <rect
+                x="14"
+                y="3"
+                width="7"
+                height="7"
+                rx="1.5"
+                stroke="currentColor"
+                strokeWidth="1.8"
+            />
+            <rect
+                x="3"
+                y="14"
+                width="7"
+                height="7"
+                rx="1.5"
+                stroke="currentColor"
+                strokeWidth="1.8"
+            />
+            <rect
+                x="14"
+                y="14"
+                width="7"
+                height="7"
+                rx="1.5"
+                stroke="currentColor"
+                strokeWidth="1.8"
+            />
+        </svg>
+    ),
+    mentors: CATEGORIES.flatMap((c) => c.mentors),
 }
+
+const TABS: Category[] = [ALL_CATEGORY, ...CATEGORIES]
+
+// ── Subcomponents ────────────────────────────────────────────────────────────
 
 function MentorCard({
     mentor,
@@ -1340,19 +1055,30 @@ function MentorCard({
                     </span>
                 </div>
 
-                <button
-                    className="w-full py-2.5 rounded-full text-sm font-bold transition-all hover:scale-[1.02]"
-                    style={{
-                        backgroundColor: mentor.available
-                            ? categoryColor
-                            : "#F3F4F6",
-                        color: mentor.available ? "#fff" : "#9CA3AF",
-                        cursor: mentor.available ? "pointer" : "not-allowed",
-                    }}
-                    disabled={!mentor.available}
-                >
-                    {mentor.available ? "Book a Session" : "Join Waitlist"}
-                </button>
+                {mentor.available ? (
+                    <Link
+                        href="/get-started"
+                        className="w-full py-2.5 rounded-full text-sm font-bold transition-all hover:scale-[1.02] flex items-center justify-center"
+                        style={{
+                            backgroundColor: categoryColor,
+                            color: "#fff",
+                        }}
+                    >
+                        Book a Session
+                    </Link>
+                ) : (
+                    <button
+                        className="w-full py-2.5 rounded-full text-sm font-bold transition-all"
+                        style={{
+                            backgroundColor: "#F3F4F6",
+                            color: "#9CA3AF",
+                            cursor: "not-allowed",
+                        }}
+                        disabled
+                    >
+                        Join Waitlist
+                    </button>
+                )}
             </div>
         </div>
     )
@@ -1361,11 +1087,11 @@ function MentorCard({
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export default function MentorsPage() {
-    const [activeCategory, setActiveCategory] = useState("career")
+    const [activeCategory, setActiveCategory] = useState("all")
     const [search, setSearch] = useState("")
     const [filterAvailable, setFilterAvailable] = useState(false)
 
-    const current = CATEGORIES.find((c) => c.id === activeCategory)!
+    const current = TABS.find((c) => c.id === activeCategory)!
 
     const filteredMentors = current.mentors.filter((m) => {
         const matchSearch =
@@ -1375,12 +1101,12 @@ export default function MentorsPage() {
                 t.toLowerCase().includes(search.toLowerCase()),
             ) ||
             m.bio.toLowerCase().includes(search.toLowerCase())
-        const matchAvailable = !filterAvailable || m.available || m.isAI
+        const matchAvailable = !filterAvailable || m.available
         return matchSearch && matchAvailable
     })
 
     const totalMentors = CATEGORIES.reduce(
-        (sum, c) => sum + c.mentors.filter((m) => !m.isAI).length,
+        (sum, c) => sum + c.mentors.length,
         0,
     )
 
@@ -1414,8 +1140,8 @@ export default function MentorsPage() {
                         style={{ fontFamily: "'DM Sans', sans-serif" }}
                         className="text-blue-200 text-base mb-8 max-w-xl"
                     >
-                        Browse {totalMentors} expert human mentors and 10 AI
-                        mentors across every area of your growth.
+                        Browse {totalMentors} expert mentors across every
+                        area of your growth.
                     </p>
 
                     {/* Category tabs */}
@@ -1423,7 +1149,7 @@ export default function MentorsPage() {
                         className="flex gap-2 overflow-x-auto pb-1"
                         style={{ scrollbarWidth: "none" }}
                     >
-                        {CATEGORIES.map((cat) => (
+                        {TABS.map((cat) => (
                             <button
                                 key={cat.id}
                                 onClick={() => setActiveCategory(cat.id)}
@@ -1484,13 +1210,11 @@ export default function MentorsPage() {
                             className="text-[#6B84A3] text-sm"
                         >
                             {
-                                current.mentors.filter(
-                                    (m) => !m.isAI && m.available,
-                                ).length
+                                current.mentors.filter((m) => m.available)
+                                    .length
                             }{" "}
                             available now ·{" "}
-                            {current.mentors.filter((m) => !m.isAI).length}{" "}
-                            total human mentors · 1 AI mentor
+                            {current.mentors.length} total mentors
                         </p>
                     </div>
                     {search && (
@@ -1502,24 +1226,15 @@ export default function MentorsPage() {
                     )}
                 </div>
 
-                {/* AI Mentor first, then human mentors */}
                 {filteredMentors.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {filteredMentors.map((mentor) =>
-                            mentor.isAI ? (
-                                <AIMentorCard
-                                    key={mentor.id}
-                                    mentor={mentor}
-                                    categoryColor={current.color}
-                                />
-                            ) : (
-                                <MentorCard
-                                    key={mentor.id}
-                                    mentor={mentor}
-                                    categoryColor={current.color}
-                                />
-                            ),
-                        )}
+                        {filteredMentors.map((mentor) => (
+                            <MentorCard
+                                key={mentor.id}
+                                mentor={mentor}
+                                categoryColor={current.color}
+                            />
+                        ))}
                     </div>
                 ) : (
                     <div className="text-center py-24 text-[#9CAFC8]">
@@ -1563,31 +1278,6 @@ export default function MentorsPage() {
                         </button>
                     </div>
                 )}
-
-                {/* Browse other categories */}
-                <div className="mt-16 pt-10 border-t border-[#E2EAF4]">
-                    <h3 className="text-lg font-bold text-[#0D1F3C] mb-5">
-                        Explore other mentorship areas
-                    </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                        {CATEGORIES.filter((c) => c.id !== activeCategory).map(
-                            (cat) => (
-                                <button
-                                    key={cat.id}
-                                    onClick={() => setActiveCategory(cat.id)}
-                                    className="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-[#E2EAF4] bg-white hover:shadow-md hover:-translate-y-0.5 transition-all text-left"
-                                >
-                                    <span style={{ color: cat.color }}>
-                                        {cat.icon}
-                                    </span>
-                                    <span className="text-xs font-semibold text-[#0D1F3C] leading-tight">
-                                        {cat.label}
-                                    </span>
-                                </button>
-                            ),
-                        )}
-                    </div>
-                </div>
             </div>
 
             {/* ── FOOTER ───────────────────────────────────────────────── */}

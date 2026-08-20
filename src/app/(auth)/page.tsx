@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { useState } from "react"
 import Link from "next/link"
@@ -444,7 +444,7 @@ const STATS = [
     { value: "12,400+", label: "Youth Mentored" },
     { value: "1,117", label: "Expert Mentors" },
     { value: "10", label: "Focus Areas" },
-    { value: "34", label: "Countries" },
+    { value: "44", label: "Countries" },
 ]
 
 export default function App() {
@@ -466,10 +466,10 @@ export default function App() {
             >
                 {/* Background decoration */}
                 <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                    <div className="absolute top-0 right-0 w-[700px] h-[700px] rounded-full bg-[#1B4B8A] opacity-50 translate-x-1/3 -translate-y-1/4" />
-                    <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[#1B4B8A] opacity-30 -translate-x-1/2 translate-y-1/3" />
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full border border-white/5" />
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-white/5" />
+                    <div className="absolute top-0 right-0 w-175 h-175 rounded-full bg-[#1B4B8A] opacity-50 translate-x-1/3 -translate-y-1/4" />
+                    <div className="absolute bottom-0 left-0 w-100 h-100 rounded-full bg-[#1B4B8A] opacity-30 -translate-x-1/2 translate-y-1/3" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-225 h-225 rounded-full border border-white/5" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 rounded-full border border-white/5" />
                 </div>
 
                 {/* Main hero content */}
@@ -989,7 +989,7 @@ export default function App() {
                                     style={{
                                         fontFamily: "'DM Sans', sans-serif",
                                     }}
-                                    className="text-[#6B84A3] text-xs mt-1 max-w-[140px]"
+                                    className="text-[#6B84A3] text-xs mt-1 max-w-35"
                                 >
                                     of mentees report a positive life change
                                     within 3 months
@@ -997,7 +997,7 @@ export default function App() {
                             </div>
                             <div className="absolute -top-5 -right-5 bg-[#E07830] rounded-2xl shadow-xl p-4">
                                 <div className="text-2xl font-extrabold text-white">
-                                    34
+                                    44
                                 </div>
                                 <p
                                     style={{
@@ -1227,110 +1227,6 @@ export default function App() {
             {/* ── FOOTER ───────────────────────────────────────────────── */}
             <footer className="bg-[#0D1F3C] text-white py-16">
                 <div className="max-w-7xl mx-auto px-6">
-                    <div className="grid md:grid-cols-5 gap-10 mb-12">
-                        <div className="md:col-span-2">
-                            <img
-                                src={LOGO_URL}
-                                alt="Global Youth Emerge"
-                                className="h-12 w-auto object-contain mb-4 brightness-0 invert"
-                            />
-                            <p
-                                style={{ fontFamily: "'DM Sans', sans-serif" }}
-                                className="text-[#6B84A3] text-sm leading-relaxed max-w-xs"
-                            >
-                                GYE Mentorship is the AI-powered youth
-                                mentorship platform of Global Youth Emerge —
-                                empowering the next generation across 10
-                                life-changing fields.
-                            </p>
-                            <div className="flex gap-3 mt-5">
-                                {[
-                                    "facebook",
-                                    "twitter",
-                                    "instagram",
-                                    "linkedin",
-                                ].map((platform) => (
-                                    <a
-                                        key={platform}
-                                        href={`https://globalyouthemerge.org`}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="w-9 h-9 rounded-full bg-white/5 hover:bg-[#1B4B8A] flex items-center justify-center transition-colors border border-white/10"
-                                    >
-                                        <svg
-                                            viewBox="0 0 20 20"
-                                            className="w-4 h-4 text-[#6B84A3]"
-                                            fill="currentColor"
-                                        >
-                                            <circle
-                                                cx="10"
-                                                cy="10"
-                                                r="9"
-                                                fillOpacity="0"
-                                                stroke="currentColor"
-                                                strokeWidth="1"
-                                            />
-                                        </svg>
-                                    </a>
-                                ))}
-                            </div>
-                        </div>
-                        {[
-                            {
-                                title: "Mentorship Areas",
-                                links: [
-                                    "Career",
-                                    "Entrepreneurship",
-                                    "Education",
-                                    "Technology",
-                                    "Mental Health",
-                                ],
-                            },
-                            {
-                                title: "More Areas",
-                                links: [
-                                    "Financial Literacy",
-                                    "Leadership",
-                                    "Women Empowerment",
-                                    "Life Coaching",
-                                    "Agriculture",
-                                ],
-                            },
-                            {
-                                title: "Organisation",
-                                links: [
-                                    "About GYE",
-                                    "Our Impact",
-                                    "Get Involved",
-                                    "Donate",
-                                    "Contact Us",
-                                ],
-                            },
-                        ].map((col) => (
-                            <div key={col.title}>
-                                <div className="font-bold text-sm mb-4 text-[#D0DCF0]">
-                                    {col.title}
-                                </div>
-                                <ul className="space-y-2.5">
-                                    {col.links.map((link) => (
-                                        <li key={link}>
-                                            <a
-                                                href="#"
-                                                style={{
-                                                    fontFamily:
-                                                        "'DM Sans', sans-serif",
-                                                }}
-                                                className="text-[#6B84A3] text-sm hover:text-white transition-colors"
-                                            >
-                                                {link}
-                                            </a>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ))}
-                    </div>
-
                     <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
                         <p
                             style={{ fontFamily: "'DM Sans', sans-serif" }}
