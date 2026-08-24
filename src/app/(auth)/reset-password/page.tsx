@@ -1,12 +1,11 @@
-import Link from "next/link"
 import { Navbar } from "@/components/Navbar"
 import { Footer } from "@/components/Footer"
-import { SignInForm } from "@/components/auth/SignInForm"
+import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm"
 
 const LOGO_URL =
     "https://globalyouthemerge.org/wp-content/uploads/2025/05/Logo-global-youth.png"
 
-export default function SignInPage() {
+export default function ResetPasswordPage() {
     return (
         <div
             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
@@ -28,36 +27,23 @@ export default function SignInPage() {
                             className="h-14 w-auto object-contain mx-auto mb-6 opacity-90"
                         />
                         <div className="inline-flex items-center gap-2 bg-[#E07830]/10 border border-[#E07830]/20 text-[#E07830] text-xs font-semibold uppercase tracking-widest px-4 py-2 rounded-full mb-6">
-                            Welcome Back
+                            First-Time Login
                         </div>
                         <h1 className="text-3xl md:text-4xl font-extrabold text-[#0D1F3C] mb-2">
-                            Sign in to your account
+                            Set a new password
                         </h1>
                         <p
                             style={{ fontFamily: "'DM Sans', sans-serif" }}
                             className="text-[#6B84A3] text-sm"
                         >
-                            Continue your mentorship journey with Global Youth
-                            Emerge.
+                            For security, you must set a new password before
+                            continuing.
                         </p>
                     </div>
 
                     <div className="bg-white rounded-2xl shadow-lg border border-[#E2EAF4] p-8">
-                        <SignInForm />
+                        <ResetPasswordForm />
                     </div>
-
-                    <p
-                        style={{ fontFamily: "'DM Sans', sans-serif" }}
-                        className="text-center text-[#6B84A3] text-sm mt-6"
-                    >
-                        New to Global Youth Emerge?{" "}
-                        <Link
-                            href="/get-started"
-                            className="text-[#1B4B8A] font-semibold hover:underline"
-                        >
-                            Get started for free
-                        </Link>
-                    </p>
                 </div>
             </main>
 

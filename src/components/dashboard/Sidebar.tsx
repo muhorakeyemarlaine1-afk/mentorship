@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { logoutAction } from "@/actions/auth"
 import {
     HomeIcon,
     UsersIcon,
@@ -74,7 +75,13 @@ function NavRow({ item, active }: { item: NavItem; active: boolean }) {
     )
 }
 
-export function Sidebar() {
+interface SidebarUser {
+    name?: string | null
+    email?: string | null
+    role: "ADMIN" | "MENTOR" | "MENTEE"
+}
+
+export function Sidebar({ user }: { user: SidebarUser }) {
     const pathname = usePathname()
 
     const isActive = (href: string) =>
@@ -120,26 +127,30 @@ export function Sidebar() {
                 <button className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xl hover:bg-white/5 transition-colors">
                     <img
                         src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100&h=100&fit=crop&auto=format"
-                        alt="Admin User"
+                        alt={user.name ?? "Account"}
                         className="w-9 h-9 rounded-full object-cover shrink-0"
                     />
                     <div className="flex-1 min-w-0 text-left">
                         <p className="text-sm font-semibold text-white truncate">
-                            Admin User
+                            {user.name ?? user.email}
                         </p>
                         <p className="text-[11px] text-[#8B84B8] truncate">
-                            Super Administrator
+                            {user.role === "ADMIN"
+                                ? "Super Administrator"
+                                : user.role}
                         </p>
                     </div>
                     <ChevronDownIcon className="w-4 h-4 text-[#8B84B8] shrink-0" />
                 </button>
-                <Link
-                    href="/signin"
-                    className="mt-1 flex items-center gap-3 px-2.5 py-2 rounded-xl text-sm font-medium text-[#B4ADD4] hover:bg-white/5 hover:text-white transition-colors"
-                >
-                    <LogoutIcon className="w-4.5 h-4.5" />
-                    Logout
-                </Link>
+                <form action={logoutAction}>
+                    <button
+                        type="submit"
+                        className="w-full mt-1 flex items-center gap-3 px-2.5 py-2 rounded-xl text-sm font-medium text-[#B4ADD4] hover:bg-white/5 hover:text-white transition-colors"
+                    >
+                        <LogoutIcon className="w-4.5 h-4.5" />
+                        Logout
+                    </button>
+                </form>
             </div>
         </aside>
     )

@@ -270,3 +270,39 @@ export function XIcon({ className, style }: IconProps) {
         </svg>
     )
 }
+
+export function EditIcon({ className, style }: IconProps) {
+    return (
+        <svg {...base} className={className} style={style}>
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z" />
+        </svg>
+    )
+}
+
+export function TrashIcon({ className, style }: IconProps) {
+    return (
+        <svg {...base} className={className} style={style}>
+            <path d="M3 6h18" />
+            <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6" />
+            <path d="M10 11v6M14 11v6" />
+        </svg>
+    )
+}
+
+export function PowerIcon({ className, style }: IconProps) {
+    return (
+        <svg {...base} className={className} style={style}>
+            <path d="M12 2v10" />
+            <path d="M18.36 6.64a9 9 0 11-12.73 0" />
+        </svg>
+    )
+}
+
+export function ChevronLeftIcon({ className, style }: IconProps) {
+    return (
+        <svg {...base} className={className} style={style}>
+            <path d="M15 18l-6-6 6-6" />
+        </svg>
+    )
+}

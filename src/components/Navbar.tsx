@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useState } from "react"
+import { useSession } from "next-auth/react"
 
 const LOGO_URL =
     "https://globalyouthemerge.org/wp-content/uploads/2025/05/Logo-global-youth.png"
@@ -30,6 +31,8 @@ export function Navbar({
 }: NavbarProps) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const showMentorFilters = onSearchChange !== undefined
+    const { status } = useSession()
+    const isSignedIn = status === "authenticated"
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-white backdrop-blur-md border-b border-[#E2EAF4]">
@@ -60,18 +63,29 @@ export function Navbar({
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">
-                    <Link
-                        href="/signin"
-                        className="hidden md:block text-sm font-semibold text-[#1B4B8A] hover:underline"
-                    >
-                        Sign In
-                    </Link>
-                    <Link
-                        href="/get-started"
-                        className="bg-[#E07830] text-white text-sm font-bold px-5 py-2.5 rounded-full hover:bg-[#C96820] transition-all hover:scale-105 active:scale-100 shadow-sm"
-                    >
-                        Get Started Free
-                    </Link>
+                    {isSignedIn ? (
+                        <Link
+                            href="/dashboard"
+                            className="bg-[#E07830] text-white text-sm font-bold px-5 py-2.5 rounded-full hover:bg-[#C96820] transition-all hover:scale-105 active:scale-100 shadow-sm"
+                        >
+                            Dashboard
+                        </Link>
+                    ) : (
+                        <>
+                            <Link
+                                href="/signin"
+                                className="hidden md:block text-sm font-semibold text-[#1B4B8A] hover:underline"
+                            >
+                                Sign In
+                            </Link>
+                            <Link
+                                href="/get-started"
+                                className="bg-[#E07830] text-white text-sm font-bold px-5 py-2.5 rounded-full hover:bg-[#C96820] transition-all hover:scale-105 active:scale-100 shadow-sm"
+                            >
+                                Get Started Free
+                            </Link>
+                        </>
+                    )}
                     <button
                         className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
