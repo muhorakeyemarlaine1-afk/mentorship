@@ -13,6 +13,30 @@ enum Role {
   MENTEE
 }
 
+enum SessionStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum ProgramStatus {
+  ACTIVE
+  DRAFT
+  ARCHIVED
+}
+
+enum MatchStatus {
+  SUGGESTED
+  ACCEPTED
+  REJECTED
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id                String   @id @default(cuid())
   name              String?
@@ -24,6 +48,108 @@ model User {
   image             String?
   isActive          Boolean  @default(true)
   mustResetPassword Boolean  @default(false)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+
+  passwordResetTokenHash      String?
+  passwordResetTokenExpiresAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mentorSessions   MentorshipSession[] @relation("MentorSessions")
+  menteeSessions   MentorshipSession[] @relation("MenteeSessions")
+  notifications    Notification[]
+  sentMessages     Message[]           @relation("SentMessages")
+  receivedMessages Message[]           @relation("ReceivedMessages")
+  mentorMatches    MentorMatch[]       @relation("MentorMatches")
+  menteeMatches    MentorMatch[]       @relation("MenteeMatches")
+}
+
+model MentorshipSession {
+  id              String        @id @default(cuid())
+  mentorId        String
+  mentor          User          @relation("MentorSessions", fields: [mentorId], references: [id], onDelete: Cascade)
+  menteeId        String
+  mentee          User          @relation("MenteeSessions", fields: [menteeId], references: [id], onDelete: Cascade)
+  scheduledAt     DateTime
+  durationMinutes Int           @default(30)
+  status          SessionStatus @default(SCHEDULED)
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Program {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  category    String?
+  status      ProgramStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id          String    @id @default(cuid())
+  senderId    String
+  sender      User      @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  recipientId String
+  recipient   User      @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
+  content     String
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model MentorMatch {
+  id        String      @id @default(cuid())
+  mentorId  String
+  mentor    User        @relation("MentorMatches", fields: [mentorId], references: [id], onDelete: Cascade)
+  menteeId  String
+  mentee    User        @relation("MenteeMatches", fields: [menteeId], references: [id], onDelete: Cascade)
+  score     Int?
+  status    MatchStatus @default(SUGGESTED)
+  createdAt DateTime    @default(now())
+
+  @@unique([mentorId, menteeId])
+}
+
+model MentorApplication {
+  id              String            @id @default(cuid())
+  name            String
+  email           String
+  currentRole     String?
+  organization    String?
+  category        String?
+  yearsExperience String?
+  motivation      String?
+  linkedin        String?
+  status          ApplicationStatus @default(PENDING)
+  createdAt       DateTime          @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorName  String?
+  actorEmail String?
+  action     String
+  targetType String
+  targetId   String?
+  detail     String?
+  createdAt  DateTime @default(now())
+}
+
+model PlatformSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
 }

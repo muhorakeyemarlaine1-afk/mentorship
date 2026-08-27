@@ -1,22 +1,10 @@
 import Link from "next/link"
 import { Navbar } from "@/components/Navbar"
 import { Footer } from "@/components/Footer"
+import { GetStartedForm } from "@/components/auth/GetStartedForm"
 
 const LOGO_URL =
     "https://globalyouthemerge.org/wp-content/uploads/2025/05/Logo-global-youth.png"
-
-const MENTORSHIP_AREAS = [
-    "Career",
-    "Entrepreneurship",
-    "Education & Scholarships",
-    "Financial Literacy",
-    "Mental Health & Well-being",
-    "Technology",
-    "Leadership",
-    "Women Empowerment",
-    "Life Coaching",
-    "Agriculture & Green Economy",
-]
 
 export default function GetStartedPage() {
     return (
@@ -56,38 +44,7 @@ export default function GetStartedPage() {
                         No cost. No barriers. Just possibility.
                     </p>
 
-                    <div className="bg-white rounded-2xl shadow-lg border border-[#E2EAF4] p-8 mb-8 text-left">
-                        <div className="grid sm:grid-cols-2 gap-4 mb-6">
-                            <input
-                                type="text"
-                                placeholder="Your full name"
-                                className="border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] transition-colors"
-                            />
-                            <input
-                                type="email"
-                                placeholder="Your email address"
-                                className="border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] transition-colors"
-                            />
-                            <select className="border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] focus:outline-none focus:border-[#1B4B8A] transition-colors bg-white">
-                                <option value="">Select your age group</option>
-                                <option>15–17</option>
-                                <option>18–22</option>
-                                <option>23–26</option>
-                                <option>27–30</option>
-                            </select>
-                            <select className="border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] focus:outline-none focus:border-[#1B4B8A] transition-colors bg-white">
-                                <option value="">
-                                    Mentorship area of interest
-                                </option>
-                                {MENTORSHIP_AREAS.map((area) => (
-                                    <option key={area}>{area}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <button className="w-full bg-[#1B4B8A] text-white font-bold text-base py-4 rounded-full hover:bg-[#163D72] transition-all hover:scale-[1.02] active:scale-100 shadow-md">
-                            Join as a Mentee — It&apos;s Free
-                        </button>
-                    </div>
+                    <GetStartedForm />
 
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <Link

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Navbar } from "@/components/Navbar"
 import { Footer } from "@/components/Footer"
+import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm"
 
 const LOGO_URL =
     "https://globalyouthemerge.org/wp-content/uploads/2025/05/Logo-global-youth.png"
@@ -41,21 +42,7 @@ export default function ForgotPasswordPage() {
                         </p>
                     </div>
 
-                    <div className="bg-white rounded-2xl shadow-lg border border-[#E2EAF4] p-8">
-                        <div className="mb-6">
-                            <label className="block text-xs font-semibold text-[#4A6080] mb-1.5">
-                                Email address
-                            </label>
-                            <input
-                                type="email"
-                                placeholder="you@example.com"
-                                className="w-full border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] transition-colors"
-                            />
-                        </div>
-                        <button className="w-full bg-[#1B4B8A] text-white font-bold text-base py-3.5 rounded-full hover:bg-[#163D72] transition-all hover:scale-[1.02] active:scale-100 shadow-md">
-                            Send Reset Link
-                        </button>
-                    </div>
+                    <ForgotPasswordForm />
 
                     <p
                         style={{ fontFamily: "'DM Sans', sans-serif" }}

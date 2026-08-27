@@ -4,8 +4,9 @@ import bcrypt from "bcryptjs"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 
-import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { requireAdmin } from "@/lib/require-admin"
+import { logAudit } from "@/lib/audit"
 import {
     createMentorSchema,
     updateMentorSchema,
@@ -13,19 +14,8 @@ import {
     type UpdateMentorInput,
 } from "@/lib/validations/mentor"
 
-async function requireAdmin() {
-    const session = await auth()
-    if (!session?.user) {
-        redirect("/signin")
-    }
-    if (session.user.role !== "ADMIN") {
-        redirect("/dashboard")
-    }
-    return session
-}
-
 export async function createMentorAction(values: CreateMentorInput) {
-    await requireAdmin()
+    const session = await requireAdmin()
 
     const parsed = createMentorSchema.safeParse(values)
     if (!parsed.success) {
@@ -53,6 +43,8 @@ export async function createMentorAction(values: CreateMentorInput) {
         },
     })
 
+    await logAudit(session.user, "Created mentor", "Mentor", mentor.id, mentor.email)
+
     revalidatePath("/mentors")
     redirect(`/mentors/${mentor.id}`)
 }
@@ -61,7 +53,7 @@ export async function updateMentorAction(
     id: string,
     values: UpdateMentorInput
 ) {
-    await requireAdmin()
+    const session = await requireAdmin()
 
     const parsed = updateMentorSchema.safeParse(values)
     if (!parsed.success) {
@@ -85,29 +77,40 @@ export async function updateMentorAction(
         },
     })
 
+    await logAudit(session.user, "Updated mentor", "Mentor", id, parsed.data.email)
+
     revalidatePath("/mentors")
     revalidatePath(`/mentors/${id}`)
     redirect(`/mentors/${id}`)
 }
 
 export async function setMentorActiveAction(id: string, isActive: boolean) {
-    await requireAdmin()
+    const session = await requireAdmin()
 
     await prisma.user.updateMany({
         where: { id, role: "MENTOR" },
         data: { isActive },
     })
 
+    await logAudit(
+        session.user,
+        isActive ? "Set mentor active" : "Set mentor inactive",
+        "Mentor",
+        id
+    )
+
     revalidatePath("/mentors")
     revalidatePath(`/mentors/${id}`)
 }
 
 export async function deleteMentorAction(id: string) {
-    await requireAdmin()
+    const session = await requireAdmin()
 
     await prisma.user.deleteMany({
         where: { id, role: "MENTOR" },
     })
+
+    await logAudit(session.user, "Deleted mentor", "Mentor", id)
 
     revalidatePath("/mentors")
     redirect("/mentors")

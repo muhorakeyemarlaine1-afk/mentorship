@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Navbar } from "@/components/Navbar"
+import { GetStartedForm } from "@/components/auth/GetStartedForm"
 
 const LOGO_URL =
     "https://globalyouthemerge.org/wp-content/uploads/2025/05/Logo-global-youth.png"
@@ -485,7 +486,7 @@ export default function App() {
                             <h1 className="text-5xl md:text-6xl xl:text-7xl font-extrabold text-white leading-[1.05] tracking-tight mb-6">
                                 Empowering
                                 <br />
-                                Africa's youth
+                                Africa&apos;s youth
                                 <br />
                                 <span className="text-[#E07830]">
                                     one mentor
@@ -912,7 +913,8 @@ export default function App() {
                                 style={{ fontFamily: "'DM Sans', sans-serif" }}
                                 className="text-blue-200 text-lg leading-relaxed mb-10"
                             >
-                                GYE Mentorship isn't just a platform — it's a
+                                GYE Mentorship isn&apos;t just a platform —
+                                it&apos;s a
                                 movement. Thousands of young people have already
                                 changed the trajectory of their lives with one
                                 good mentor.
@@ -1165,38 +1167,7 @@ export default function App() {
                         No cost. No barriers. Just possibility.
                     </p>
 
-                    <div className="bg-white rounded-2xl shadow-lg border border-[#E2EAF4] p-8 mb-8">
-                        <div className="grid sm:grid-cols-2 gap-4 mb-6">
-                            <input
-                                type="text"
-                                placeholder="Your full name"
-                                className="border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] transition-colors"
-                            />
-                            <input
-                                type="email"
-                                placeholder="Your email address"
-                                className="border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] transition-colors"
-                            />
-                            <select className="border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] focus:outline-none focus:border-[#1B4B8A] transition-colors bg-white">
-                                <option value="">Select your age group</option>
-                                <option>15–17</option>
-                                <option>18–22</option>
-                                <option>23–26</option>
-                                <option>27–30</option>
-                            </select>
-                            <select className="border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] focus:outline-none focus:border-[#1B4B8A] transition-colors bg-white">
-                                <option value="">
-                                    Mentorship area of interest
-                                </option>
-                                {CATEGORIES.map((c) => (
-                                    <option key={c.id}>{c.title}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <button className="w-full bg-[#1B4B8A] text-white font-bold text-base py-4 rounded-full hover:bg-[#163D72] transition-all hover:scale-[1.02] active:scale-100 shadow-md">
-                            Join as a Mentee — It's Free
-                        </button>
-                    </div>
+                    <GetStartedForm />
 
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <Link

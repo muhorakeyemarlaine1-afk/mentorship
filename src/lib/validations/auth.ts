@@ -22,3 +22,9 @@ export const resetPasswordSchema = z
     })
 
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
+
+export const forgotPasswordSchema = z.object({
+    email: z.email({ error: "Please enter a valid email." }).trim(),
+})
+
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>

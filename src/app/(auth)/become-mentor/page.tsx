@@ -1,29 +1,9 @@
-import Link from "next/link"
 import { Navbar } from "@/components/Navbar"
 import { Footer } from "@/components/Footer"
+import { BecomeMentorForm } from "@/components/auth/BecomeMentorForm"
 
 const LOGO_URL =
     "https://globalyouthemerge.org/wp-content/uploads/2025/05/Logo-global-youth.png"
-
-const MENTORSHIP_AREAS = [
-    "Career",
-    "Entrepreneurship",
-    "Education & Scholarships",
-    "Financial Literacy",
-    "Mental Health & Well-being",
-    "Technology",
-    "Leadership",
-    "Women Empowerment",
-    "Life Coaching",
-    "Agriculture & Green Economy",
-]
-
-const YEARS_OF_EXPERIENCE = [
-    "1–3 years",
-    "4–7 years",
-    "8–15 years",
-    "15+ years",
-]
 
 const PERKS = [
     {
@@ -118,90 +98,7 @@ export default function BecomeMentorPage() {
                     </div>
 
                     {/* Right: application form */}
-                    <div className="bg-white rounded-2xl shadow-xl border border-[#E2EAF4] p-8">
-                        <h2 className="text-xl font-bold text-[#0D1F3C] mb-1">
-                            Apply to mentor
-                        </h2>
-                        <p
-                            style={{ fontFamily: "'DM Sans', sans-serif" }}
-                            className="text-[#6B84A3] text-sm mb-6"
-                        >
-                            Takes about 5 minutes. Our team reviews every
-                            application within 3 business days.
-                        </p>
-
-                        <div className="flex flex-col gap-4">
-                            <div className="grid sm:grid-cols-2 gap-4">
-                                <input
-                                    type="text"
-                                    placeholder="Your full name"
-                                    className="border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] transition-colors"
-                                />
-                                <input
-                                    type="email"
-                                    placeholder="Your email address"
-                                    className="border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] transition-colors"
-                                />
-                            </div>
-                            <div className="grid sm:grid-cols-2 gap-4">
-                                <input
-                                    type="text"
-                                    placeholder="Current role"
-                                    className="border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] transition-colors"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Organisation / Company"
-                                    className="border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] transition-colors"
-                                />
-                            </div>
-                            <div className="grid sm:grid-cols-2 gap-4">
-                                <select className="border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] focus:outline-none focus:border-[#1B4B8A] transition-colors bg-white">
-                                    <option value="">
-                                        Mentorship area of expertise
-                                    </option>
-                                    {MENTORSHIP_AREAS.map((area) => (
-                                        <option key={area}>{area}</option>
-                                    ))}
-                                </select>
-                                <select className="border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] focus:outline-none focus:border-[#1B4B8A] transition-colors bg-white">
-                                    <option value="">
-                                        Years of experience
-                                    </option>
-                                    {YEARS_OF_EXPERIENCE.map((range) => (
-                                        <option key={range}>{range}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <textarea
-                                placeholder="Tell us why you'd like to mentor African youth, and what you can offer them."
-                                rows={4}
-                                className="border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] transition-colors resize-none"
-                            />
-                            <input
-                                type="url"
-                                placeholder="LinkedIn profile (optional)"
-                                className="border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] transition-colors"
-                            />
-
-                            <button className="w-full bg-[#1B4B8A] text-white font-bold text-base py-3.5 rounded-full hover:bg-[#163D72] transition-all hover:scale-[1.02] active:scale-100 shadow-md mt-2">
-                                Submit Application
-                            </button>
-                        </div>
-
-                        <p
-                            style={{ fontFamily: "'DM Sans', sans-serif" }}
-                            className="text-center text-[#6B84A3] text-xs mt-6"
-                        >
-                            Looking for a mentor instead?{" "}
-                            <Link
-                                href="/get-started"
-                                className="text-[#1B4B8A] font-semibold hover:underline"
-                            >
-                                Get started as a mentee
-                            </Link>
-                        </p>
-                    </div>
+                    <BecomeMentorForm />
                 </div>
             </main>
 
