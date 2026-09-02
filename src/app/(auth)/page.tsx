@@ -477,12 +477,7 @@ export default function App() {
                 <div className="relative max-w-7xl mx-auto px-6 flex-1 flex items-center py-20">
                     <div className="grid lg:grid-cols-2 gap-16 items-center w-full">
                         <div>
-                            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-blue-200 text-xs font-semibold uppercase tracking-widest px-4 py-2 rounded-full mb-8">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#E07830] animate-pulse" />
-                                AI-Powered Youth Mentorship ·
-                                mentorship.globalyouthemerge.org
-                            </div>
-
+                            
                             <h1 className="text-5xl md:text-6xl xl:text-7xl font-extrabold text-white leading-[1.05] tracking-tight mb-6">
                                 Empowering
                                 <br />
@@ -500,7 +495,7 @@ export default function App() {
                                 className="text-blue-200 text-lg leading-relaxed mb-10 max-w-lg"
                             >
                                 Global Youth Emerge connects young people aged
-                                15–30 with expert mentors across 10
+                                15-34 with expert mentors across 10
                                 life-changing fields — completely free.
                             </p>
 
@@ -794,9 +789,7 @@ export default function App() {
                         Featured Mentors
                     </div>
                     <h2 className="text-4xl md:text-5xl font-extrabold text-[#0D1F3C] leading-tight">
-                        Learn from those
-                        <br />
-                        who have done it
+                        Learn from the best
                     </h2>
                 </div>
 
@@ -883,13 +876,13 @@ export default function App() {
                         href="/mentors"
                         className="border-2 border-[#1B4B8A] text-[#1B4B8A] font-bold px-8 py-4 rounded-full hover:bg-[#1B4B8A] hover:text-white transition-all inline-block"
                     >
-                        View All 1,117 Mentors
+                        View All Mentors
                     </Link>
                 </div>
             </section>
 
             {/* ── IMPACT ───────────────────────────────────────────────── */}
-            <section
+            {/* <section
                 id="impact"
                 className="bg-[#0D2B5E] py-24 relative overflow-hidden"
             >
@@ -1013,10 +1006,10 @@ export default function App() {
                         </div>
                     </div>
                 </div>
-            </section>
+            </section> */}
 
             {/* ── TESTIMONIALS ─────────────────────────────────────────── */}
-            <section id="stories" className="py-24 max-w-7xl mx-auto px-6">
+            {/* <section id="stories" className="py-24 max-w-7xl mx-auto px-6">
                 <div className="mb-14 flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
                         <div className="text-[#E07830] text-sm font-bold uppercase tracking-widest mb-3">
@@ -1132,7 +1125,7 @@ export default function App() {
                         </button>
                     ))}
                 </div>
-            </section>
+            </section> */}
 
             {/* ── JOIN CTA ──────────────────────────────────────────────── */}
             <section
