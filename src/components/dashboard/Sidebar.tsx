@@ -155,7 +155,7 @@ export function Sidebar({
                     />
                 ))}
 
-                {user.role === "ADMIN" && (
+                {/* {user.role === "ADMIN" && (
                     <>
                         <div className="h-px bg-white/10 my-3 mx-1" />
 
@@ -167,7 +167,7 @@ export function Sidebar({
                             />
                         ))}
                     </>
-                )}
+                )} */}
             </nav>
 
             <div className="shrink-0 p-3 border-t border-white/10">
