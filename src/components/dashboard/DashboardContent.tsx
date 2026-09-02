@@ -6,7 +6,6 @@ import {
     UserIcon,
     SparkleIcon,
     CalendarIcon,
-    BellIcon,
     ArrowUpRightIcon,
     BookOpenIcon,
     BarChartIcon,
@@ -113,25 +112,14 @@ export function DashboardContent({
 
     return (
         <div className="px-8 py-6">
-            <div className="flex items-start justify-between gap-6 flex-wrap mb-7">
-                <div>
-                    <h1 className="text-2xl font-extrabold text-[#171139]">
-                        Welcome back, {adminName} 👋
-                    </h1>
-                    <p className="text-sm text-[#6B6690] mt-1">
-                        Here&apos;s what&apos;s happening with your
-                        mentorship platform today.
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <Link
-                        href="/notifications"
-                        className="relative w-10 h-10 rounded-full border border-[#E5E3F1] bg-white flex items-center justify-center hover:bg-[#F6F7FB] transition-colors"
-                    >
-                        <BellIcon className="w-4.5 h-4.5 text-[#171139]" />
-                    </Link>
-                </div>
+            <div className="mb-7">
+                <h1 className="text-2xl font-extrabold text-[#171139]">
+                    Welcome back, {adminName} 👋
+                </h1>
+                <p className="text-sm text-[#6B6690] mt-1">
+                    Here&apos;s what&apos;s happening with your mentorship
+                    platform today.
+                </p>
             </div>
 
             {!isAdmin && (

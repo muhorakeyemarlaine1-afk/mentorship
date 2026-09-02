@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { Sidebar } from "@/components/dashboard/Sidebar"
+import { TopNavbar } from "@/components/dashboard/TopNavbar"
 
 export default async function DashboardGroupLayout({
     children,
@@ -40,7 +41,13 @@ export default async function DashboardGroupLayout({
                 unreadMessages={unreadMessages}
                 pendingApplications={pendingApplications}
             />
-            <main className="flex-1 min-w-0">{children}</main>
+            <div className="flex-1 min-w-0 flex flex-col">
+                <TopNavbar
+                    user={session.user}
+                    unreadNotifications={unreadNotifications}
+                />
+                <main className="flex-1 min-w-0">{children}</main>
+            </div>
         </div>
     )
 }

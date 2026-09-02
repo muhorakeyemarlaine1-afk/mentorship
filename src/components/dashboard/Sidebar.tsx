@@ -30,7 +30,7 @@ interface NavItem {
 
 function buildMainNav(
     unreadMessages: number,
-    unreadNotifications: number
+    unreadNotifications: number,
 ): NavItem[] {
     return [
         { label: "Dashboard", href: "/dashboard", icon: HomeIcon },
@@ -82,7 +82,7 @@ function NavRow({ item, active }: { item: NavItem; active: boolean }) {
     return (
         <Link
             href={item.href}
-            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+            className={`flex items-center gap-3 px-3.5 py-3.5 mb-1 text-sm font-medium transition-colors ${
                 active
                     ? "bg-[#6C4FE0] text-white shadow-sm shadow-[#6C4FE0]/30"
                     : "text-[#B4ADD4] hover:bg-white/5 hover:text-white"
@@ -132,7 +132,7 @@ export function Sidebar({
 
     return (
         <aside className="hidden lg:flex lg:flex-col w-64 shrink-0 h-screen sticky top-0 bg-[#1C1440] text-white">
-            <div className="flex items-center gap-3 px-5 h-20 shrink-0">
+            <div className="flex items-center gap-3 px-5 h-20 shrink-0 border-b border-white/10">
                 <div className="w-10 h-10 rounded-xl bg-[#6C4FE0] flex items-center justify-center shrink-0">
                     <SparkleIcon className="w-5 h-5 text-white" />
                 </div>
@@ -146,7 +146,7 @@ export function Sidebar({
                 </div>
             </div>
 
-            <nav className="flex-1 overflow-y-auto px-3 py-2 flex flex-col gap-1">
+            <nav className="flex-1 overflow-y-auto py-2 flex flex-col gap-1">
                 {mainNav.map((item) => (
                     <NavRow
                         key={item.href}
@@ -170,7 +170,7 @@ export function Sidebar({
                 )} */}
             </nav>
 
-            <div className="shrink-0 p-3 border-t border-white/10">
+            {/* <div className="shrink-0 p-3 border-t border-white/10">
                 <Link
                     href="/settings"
                     className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xl hover:bg-white/5 transition-colors"
@@ -199,7 +199,7 @@ export function Sidebar({
                         Logout
                     </button>
                 </form>
-            </div>
+            </div> */}
         </aside>
     )
 }
