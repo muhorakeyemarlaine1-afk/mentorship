@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/require-admin"
 import { logAudit } from "@/lib/audit"
+import { deleteProfileImage } from "@/lib/r2"
 import {
     createMenteeSchema,
     updateMenteeSchema,
@@ -37,6 +38,7 @@ export async function createMenteeAction(values: CreateMenteeInput) {
             email: parsed.data.email,
             title: parsed.data.title || null,
             bio: parsed.data.bio || null,
+            image: parsed.data.image || null,
             password: hashedPassword,
             role: "MENTEE",
             mustResetPassword: true,
@@ -67,15 +69,35 @@ export async function updateMenteeAction(
         return { error: "A user with this email already exists." }
     }
 
+    const current = await prisma.user.findFirst({
+        where: { id, role: "MENTEE" },
+        select: { image: true },
+    })
+
+    const data: {
+        name: string
+        email: string
+        title: string | null
+        bio: string | null
+        image?: string | null
+    } = {
+        name: parsed.data.name,
+        email: parsed.data.email,
+        title: parsed.data.title || null,
+        bio: parsed.data.bio || null,
+    }
+    if (parsed.data.image !== undefined) {
+        data.image = parsed.data.image || null
+    }
+
     await prisma.user.updateMany({
         where: { id, role: "MENTEE" },
-        data: {
-            name: parsed.data.name,
-            email: parsed.data.email,
-            title: parsed.data.title || null,
-            bio: parsed.data.bio || null,
-        },
+        data,
     })
+
+    if (data.image !== undefined && current?.image && current.image !== data.image) {
+        await deleteProfileImage(current.image)
+    }
 
     await logAudit(session.user, "Updated mentee", "Mentee", id, parsed.data.email)
 
@@ -106,9 +128,18 @@ export async function setMenteeActiveAction(id: string, isActive: boolean) {
 export async function deleteMenteeAction(id: string) {
     const session = await requireAdmin()
 
+    const mentee = await prisma.user.findFirst({
+        where: { id, role: "MENTEE" },
+        select: { image: true },
+    })
+
     await prisma.user.deleteMany({
         where: { id, role: "MENTEE" },
     })
+
+    if (mentee?.image) {
+        await deleteProfileImage(mentee.image)
+    }
 
     await logAudit(session.user, "Deleted mentee", "Mentee", id)
 

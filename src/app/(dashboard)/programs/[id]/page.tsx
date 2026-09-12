@@ -18,9 +18,11 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default async function ProgramPage({ params }: ProgramPageProps) {
     const session = await auth()
-    if (session?.user.role !== "ADMIN") {
-        redirect("/dashboard")
+    if (!session?.user) {
+        redirect("/signin")
     }
+
+    const isAdmin = session.user.role === "ADMIN"
 
     const { id } = await params
     const program = await prisma.program.findUnique({ where: { id } })
@@ -59,13 +61,15 @@ export default async function ProgramPage({ params }: ProgramPageProps) {
                         )}
                     </div>
 
-                    <Link
-                        href={`/programs/${program.id}/edit`}
-                        className="flex items-center gap-2 border border-[#EDEBF6] text-[#171139] text-sm font-semibold px-4 py-2.5 rounded-full hover:bg-[#F6F7FB] transition-colors"
-                    >
-                        <EditIcon className="w-4 h-4" />
-                        Edit
-                    </Link>
+                    {isAdmin && (
+                        <Link
+                            href={`/programs/${program.id}/edit`}
+                            className="flex items-center gap-2 border border-[#EDEBF6] text-[#171139] text-sm font-semibold px-4 py-2.5 rounded-full hover:bg-[#F6F7FB] transition-colors"
+                        >
+                            <EditIcon className="w-4 h-4" />
+                            Edit
+                        </Link>
+                    )}
                 </div>
 
                 {program.description && (
@@ -79,9 +83,11 @@ export default async function ProgramPage({ params }: ProgramPageProps) {
                     </div>
                 )}
 
-                <div className="pt-5 border-t border-[#EDEBF6]">
-                    <DeleteProgramButton programId={program.id} />
-                </div>
+                {isAdmin && (
+                    <div className="pt-5 border-t border-[#EDEBF6]">
+                        <DeleteProgramButton programId={program.id} />
+                    </div>
+                )}
             </div>
         </div>
     )

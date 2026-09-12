@@ -16,7 +16,6 @@ export default async function ResetPasswordTokenPage({
 
     return (
         <div
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             className="min-h-screen flex flex-col bg-white text-[#0D1F3C]"
         >
             <Navbar />

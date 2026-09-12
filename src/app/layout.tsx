@@ -5,12 +5,12 @@ import NextTopLoader from "nextjs-toploader"
 import "./globals.css"
 
 const nunito = Nunito({
-    variable: "--nunito",
+    variable: "--font-nunito",
     subsets: ["latin"],
 })
 
 const nunitoSans = Nunito_Sans({
-    variable: "--nunito-sans",
+    variable: "--font-nunito-sans",
     subsets: ["latin"],
 })
 

@@ -29,9 +29,11 @@ export interface ActiveMatch {
 export function MatchmakingBoard({
     unmatched,
     activeMatches,
+    readOnly = false,
 }: {
     unmatched: UnmatchedMentee[]
     activeMatches: ActiveMatch[]
+    readOnly?: boolean
 }) {
     const [isPending, startTransition] = useTransition()
     const [busyKey, setBusyKey] = useState<string | null>(null)
@@ -64,8 +66,9 @@ export function MatchmakingBoard({
                     AI Matchmaking
                 </h1>
                 <p className="text-sm text-[#6B6690] mt-1">
-                    Suggestions are ranked by shared focus area between an
-                    active mentor and an unmatched mentee.
+                    {readOnly
+                        ? "The mentors and mentees you've been matched with."
+                        : "Suggestions are ranked by shared focus area between an active mentor and an unmatched mentee."}
                 </p>
             </div>
 
@@ -75,6 +78,7 @@ export function MatchmakingBoard({
                 </p>
             )}
 
+            {!readOnly && (
             <div className="bg-white rounded-2xl border border-[#EDEBF6] p-5 mb-6">
                 <h2 className="text-base font-bold text-[#171139] mb-4">
                     Unmatched Mentees ({unmatched.length})
@@ -159,6 +163,7 @@ export function MatchmakingBoard({
                     </div>
                 )}
             </div>
+            )}
 
             <div className="bg-white rounded-2xl border border-[#EDEBF6] p-5">
                 <h2 className="text-base font-bold text-[#171139] mb-4">
@@ -183,14 +188,16 @@ export function MatchmakingBoard({
                                         </span>{" "}
                                         &amp; {m.menteeName}
                                     </p>
-                                    <button
-                                        onClick={() => unmatch(m.id)}
-                                        disabled={rowBusy}
-                                        className="shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-60"
-                                    >
-                                        <TrashIcon className="w-3.5 h-3.5" />
-                                        Unmatch
-                                    </button>
+                                    {!readOnly && (
+                                        <button
+                                            onClick={() => unmatch(m.id)}
+                                            disabled={rowBusy}
+                                            className="shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-60"
+                                        >
+                                            <TrashIcon className="w-3.5 h-3.5" />
+                                            Unmatch
+                                        </button>
+                                    )}
                                 </div>
                             )
                         })}

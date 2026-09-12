@@ -6,8 +6,8 @@ import { ProgramsList } from "@/components/dashboard/ProgramsList"
 
 export default async function ProgramsPage() {
     const session = await auth()
-    if (session?.user.role !== "ADMIN") {
-        redirect("/dashboard")
+    if (!session?.user) {
+        redirect("/signin")
     }
 
     const programs = await prisma.program.findMany({
@@ -24,6 +24,7 @@ export default async function ProgramsPage() {
                     status: p.status,
                     createdAt: p.createdAt.toISOString(),
                 }))}
+                canManage={session.user.role === "ADMIN"}
             />
         </div>
     )

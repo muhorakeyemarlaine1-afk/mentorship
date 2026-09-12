@@ -5,17 +5,22 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
 import { createMenteeAction } from "@/actions/mentees"
+import { uploadProfileImageAction } from "@/actions/uploads"
 import {
     createMenteeSchema,
     type CreateMenteeInput,
 } from "@/lib/validations/mentee"
+import { PasswordInput } from "@/components/ui/password-input"
+import { ProfileImageInput } from "@/components/dashboard/ProfileImageInput"
 
 export function CreateMenteeForm() {
     const [formError, setFormError] = useState<string | null>(null)
+    const [imageFile, setImageFile] = useState<File | null>(null)
 
     const {
         register,
         handleSubmit,
+        watch,
         formState: { errors, isSubmitting },
     } = useForm<CreateMenteeInput>({
         resolver: zodResolver(createMenteeSchema),
@@ -23,7 +28,20 @@ export function CreateMenteeForm() {
 
     async function onSubmit(values: CreateMenteeInput) {
         setFormError(null)
-        const result = await createMenteeAction(values)
+
+        let image: string | undefined
+        if (imageFile) {
+            const formData = new FormData()
+            formData.append("image", imageFile)
+            const uploadResult = await uploadProfileImageAction(formData)
+            if (uploadResult?.error) {
+                setFormError(uploadResult.error)
+                return
+            }
+            image = uploadResult.url
+        }
+
+        const result = await createMenteeAction({ ...values, image })
         if (result?.error) {
             setFormError(result.error)
         }
@@ -32,6 +50,11 @@ export function CreateMenteeForm() {
     return (
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="flex flex-col gap-4 mb-6">
+                <ProfileImageInput
+                    name={watch("name")}
+                    onChange={setImageFile}
+                />
+
                 <div>
                     <label className="block text-xs font-semibold text-[#4A6080] mb-1.5">
                         Full name
@@ -104,10 +127,8 @@ export function CreateMenteeForm() {
                     <label className="block text-xs font-semibold text-[#4A6080] mb-1.5">
                         Temporary password
                     </label>
-                    <input
-                        type="password"
+                    <PasswordInput
                         placeholder="••••••••"
-                        className="w-full border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] transition-colors"
                         {...register("password")}
                     />
                     {errors.password && (

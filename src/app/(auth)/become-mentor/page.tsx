@@ -23,7 +23,6 @@ const PERKS = [
 export default function BecomeMentorPage() {
     return (
         <div
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             className="min-h-screen flex flex-col bg-white text-[#0D1F3C]"
         >
             <Navbar />
@@ -52,7 +51,6 @@ export default function BecomeMentorPage() {
                             Shape someone&apos;s future.
                         </h1>
                         <p
-                            style={{ fontFamily: "'DM Sans', sans-serif" }}
                             className="text-blue-200 text-base leading-relaxed mb-10 max-w-md"
                         >
                             Every mentor on Global Youth Emerge was once
@@ -83,10 +81,6 @@ export default function BecomeMentorPage() {
                                             {perk.title}
                                         </div>
                                         <p
-                                            style={{
-                                                fontFamily:
-                                                    "'DM Sans', sans-serif",
-                                            }}
                                             className="text-blue-200 text-sm leading-relaxed"
                                         >
                                             {perk.desc}

@@ -44,7 +44,6 @@ export function ForgotPasswordForm() {
                 {resetUrl ? (
                     <>
                         <p
-                            style={{ fontFamily: "'DM Sans', sans-serif" }}
                             className="text-[#6B84A3] text-sm mb-4"
                         >
                             This platform doesn&apos;t have email delivery
@@ -60,7 +59,6 @@ export function ForgotPasswordForm() {
                     </>
                 ) : (
                     <p
-                        style={{ fontFamily: "'DM Sans', sans-serif" }}
                         className="text-[#6B84A3] text-sm"
                     >
                         If an account exists for that email, a reset link has

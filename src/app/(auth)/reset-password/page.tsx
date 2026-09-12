@@ -8,7 +8,6 @@ const LOGO_URL =
 export default function ResetPasswordPage() {
     return (
         <div
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             className="min-h-screen flex flex-col bg-white text-[#0D1F3C]"
         >
             <Navbar />
@@ -33,7 +32,6 @@ export default function ResetPasswordPage() {
                             Set a new password
                         </h1>
                         <p
-                            style={{ fontFamily: "'DM Sans', sans-serif" }}
                             className="text-[#6B84A3] text-sm"
                         >
                             For security, you must set a new password before

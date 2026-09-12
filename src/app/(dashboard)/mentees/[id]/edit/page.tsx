@@ -52,6 +52,7 @@ export default async function EditMenteePage({
                         email: mentee.email,
                         title: mentee.title ?? "",
                         bio: mentee.bio ?? "",
+                        image: mentee.image ?? "",
                     }}
                 />
             </div>

@@ -53,7 +53,6 @@ function MentorCard({ mentor }: { mentor: PublicMentor }) {
                 </h3>
                 {mentor.title && (
                     <p
-                        style={{ fontFamily: "'DM Sans', sans-serif" }}
                         className="text-sm text-[#1B4B8A] mt-0.5 mb-3"
                     >
                         {mentor.title}
@@ -61,7 +60,6 @@ function MentorCard({ mentor }: { mentor: PublicMentor }) {
                 )}
                 {mentor.bio && (
                     <p
-                        style={{ fontFamily: "'DM Sans', sans-serif" }}
                         className="text-[#4A6080] text-sm leading-relaxed mb-4 line-clamp-3"
                     >
                         {mentor.bio}
@@ -107,7 +105,6 @@ export function MentorsBrowser({ mentors }: { mentors: PublicMentor[] }) {
 
     return (
         <div
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             className="min-h-screen bg-white"
         >
             <Navbar
@@ -130,7 +127,6 @@ export function MentorsBrowser({ mentors }: { mentors: PublicMentor[] }) {
                         Find Your Mentor
                     </h1>
                     <p
-                        style={{ fontFamily: "'DM Sans', sans-serif" }}
                         className="text-blue-200 text-base"
                     >
                         Browse {mentors.length} expert mentors across every
@@ -146,7 +142,6 @@ export function MentorsBrowser({ mentors }: { mentors: PublicMentor[] }) {
                             Our Mentors
                         </h2>
                         <p
-                            style={{ fontFamily: "'DM Sans', sans-serif" }}
                             className="text-[#6B84A3] text-sm"
                         >
                             {availableCount} available now ·{" "}
@@ -195,7 +190,6 @@ export function MentorsBrowser({ mentors }: { mentors: PublicMentor[] }) {
                                 : "No mentors found"}
                         </p>
                         <p
-                            style={{ fontFamily: "'DM Sans', sans-serif" }}
                             className="text-sm mt-1"
                         >
                             {mentors.length === 0
@@ -226,7 +220,6 @@ export function MentorsBrowser({ mentors }: { mentors: PublicMentor[] }) {
                             className="h-8 w-auto brightness-0 invert"
                         />
                         <span
-                            style={{ fontFamily: "'DM Sans', sans-serif" }}
                             className="text-[#6B84A3] text-sm"
                         >
                             © 2025 Global Youth Emerge ·
@@ -238,9 +231,6 @@ export function MentorsBrowser({ mentors }: { mentors: PublicMentor[] }) {
                             <a
                                 key={l}
                                 href="#"
-                                style={{
-                                    fontFamily: "'DM Sans', sans-serif",
-                                }}
                                 className="text-[#6B84A3] text-xs hover:text-white transition-colors"
                             >
                                 {l}

@@ -9,6 +9,7 @@ import {
     changePasswordSchema,
     type ChangePasswordInput,
 } from "@/lib/validations/settings"
+import { PasswordInput } from "@/components/ui/password-input"
 
 export function ChangePasswordForm() {
     const [formError, setFormError] = useState<string | null>(null)
@@ -42,11 +43,7 @@ export function ChangePasswordForm() {
                     <label className="block text-xs font-semibold text-[#4A6080] mb-1.5">
                         Current password
                     </label>
-                    <input
-                        type="password"
-                        className="w-full border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] focus:outline-none focus:border-[#1B4B8A] transition-colors"
-                        {...register("currentPassword")}
-                    />
+                    <PasswordInput {...register("currentPassword")} />
                     {errors.currentPassword && (
                         <p className="mt-1.5 text-xs font-medium text-red-600">
                             {errors.currentPassword.message}
@@ -58,11 +55,7 @@ export function ChangePasswordForm() {
                         <label className="block text-xs font-semibold text-[#4A6080] mb-1.5">
                             New password
                         </label>
-                        <input
-                            type="password"
-                            className="w-full border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] focus:outline-none focus:border-[#1B4B8A] transition-colors"
-                            {...register("newPassword")}
-                        />
+                        <PasswordInput {...register("newPassword")} />
                         {errors.newPassword && (
                             <p className="mt-1.5 text-xs font-medium text-red-600">
                                 {errors.newPassword.message}
@@ -73,11 +66,7 @@ export function ChangePasswordForm() {
                         <label className="block text-xs font-semibold text-[#4A6080] mb-1.5">
                             Confirm new password
                         </label>
-                        <input
-                            type="password"
-                            className="w-full border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] focus:outline-none focus:border-[#1B4B8A] transition-colors"
-                            {...register("confirmPassword")}
-                        />
+                        <PasswordInput {...register("confirmPassword")} />
                         {errors.confirmPassword && (
                             <p className="mt-1.5 text-xs font-medium text-red-600">
                                 {errors.confirmPassword.message}

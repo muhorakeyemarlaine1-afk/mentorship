@@ -60,7 +60,6 @@ export function BecomeMentorForm() {
                     Application received 🎉
                 </h2>
                 <p
-                    style={{ fontFamily: "'DM Sans', sans-serif" }}
                     className="text-[#6B84A3] text-sm"
                 >
                     Thank you for applying. Our team reviews every
@@ -77,7 +76,6 @@ export function BecomeMentorForm() {
                 Apply to mentor
             </h2>
             <p
-                style={{ fontFamily: "'DM Sans', sans-serif" }}
                 className="text-[#6B84A3] text-sm mb-6"
             >
                 Takes about 5 minutes. Our team reviews every application
@@ -187,7 +185,6 @@ export function BecomeMentorForm() {
             </form>
 
             <p
-                style={{ fontFamily: "'DM Sans', sans-serif" }}
                 className="text-center text-[#6B84A3] text-xs mt-6"
             >
                 Looking for a mentor instead?{" "}

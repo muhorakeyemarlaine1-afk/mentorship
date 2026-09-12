@@ -454,7 +454,6 @@ export default function App() {
 
     return (
         <div
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             className="bg-white text-[#0D1F3C]"
         >
             {/* ── NAV ─────────────────────────────────────────────────── */}
@@ -491,7 +490,6 @@ export default function App() {
                             </h1>
 
                             <p
-                                style={{ fontFamily: "'DM Sans', sans-serif" }}
                                 className="text-blue-200 text-lg leading-relaxed mb-10 max-w-lg"
                             >
                                 Global Youth Emerge connects young people aged
@@ -539,10 +537,6 @@ export default function App() {
                                             {stat.value}
                                         </div>
                                         <div
-                                            style={{
-                                                fontFamily:
-                                                    "'DM Sans', sans-serif",
-                                            }}
                                             className="text-blue-300 text-xs mt-0.5"
                                         >
                                             {stat.label}
@@ -617,7 +611,6 @@ export default function App() {
                         </h2>
                     </div>
                     <p
-                        style={{ fontFamily: "'DM Sans', sans-serif" }}
                         className="text-[#6B84A3] text-base max-w-sm md:text-right"
                     >
                         Whatever direction you want to grow — we have mentors
@@ -685,9 +678,6 @@ export default function App() {
                             </div>
                             {activeCategory === cat.id && (
                                 <p
-                                    style={{
-                                        fontFamily: "'DM Sans', sans-serif",
-                                    }}
                                     className="text-white/85 text-xs leading-relaxed mb-3"
                                 >
                                     {cat.desc}
@@ -737,9 +727,6 @@ export default function App() {
                                     {step.title}
                                 </h3>
                                 <p
-                                    style={{
-                                        fontFamily: "'DM Sans', sans-serif",
-                                    }}
                                     className="text-[#6B84A3] leading-relaxed text-sm"
                                 >
                                     {step.desc}
@@ -820,17 +807,11 @@ export default function App() {
                                     {mentor.name}
                                 </h3>
                                 <p
-                                    style={{
-                                        fontFamily: "'DM Sans', sans-serif",
-                                    }}
                                     className="text-[#6B84A3] text-sm mt-0.5 mb-3"
                                 >
                                     {mentor.role}
                                 </p>
                                 <p
-                                    style={{
-                                        fontFamily: "'DM Sans', sans-serif",
-                                    }}
                                     className="text-[#4A6080] text-sm italic leading-relaxed mb-4"
                                 >
                                     &ldquo;{mentor.quote}&rdquo;
@@ -849,9 +830,6 @@ export default function App() {
                                         </span>
                                     </div>
                                     <span
-                                        style={{
-                                            fontFamily: "'DM Sans', sans-serif",
-                                        }}
                                         className="text-xs text-[#9CAFC8]"
                                     >
                                         {mentor.sessions} sessions
@@ -903,7 +881,6 @@ export default function App() {
                                 real numbers
                             </h2>
                             <p
-                                style={{ fontFamily: "'DM Sans', sans-serif" }}
                                 className="text-blue-200 text-lg leading-relaxed mb-10"
                             >
                                 GYE Mentorship isn&apos;t just a platform —
@@ -942,10 +919,6 @@ export default function App() {
                                     <div key={item.label}>
                                         <div className="flex justify-between mb-1.5">
                                             <span
-                                                style={{
-                                                    fontFamily:
-                                                        "'DM Sans', sans-serif",
-                                                }}
                                                 className="text-blue-200 text-sm"
                                             >
                                                 {item.label}
@@ -981,9 +954,6 @@ export default function App() {
                                     94%
                                 </div>
                                 <p
-                                    style={{
-                                        fontFamily: "'DM Sans', sans-serif",
-                                    }}
                                     className="text-[#6B84A3] text-xs mt-1 max-w-35"
                                 >
                                     of mentees report a positive life change
@@ -995,9 +965,6 @@ export default function App() {
                                     44
                                 </div>
                                 <p
-                                    style={{
-                                        fontFamily: "'DM Sans', sans-serif",
-                                    }}
                                     className="text-white/80 text-xs mt-0.5"
                                 >
                                     Countries
@@ -1112,7 +1079,6 @@ export default function App() {
                             </div>
                             <p
                                 style={{
-                                    fontFamily: "'DM Sans', sans-serif",
                                     color:
                                         i === activeTestimonial
                                             ? "#BFDBFE"
@@ -1151,7 +1117,6 @@ export default function App() {
                         waiting for you
                     </h2>
                     <p
-                        style={{ fontFamily: "'DM Sans', sans-serif" }}
                         className="text-[#6B84A3] text-lg leading-relaxed mb-10"
                     >
                         Join 12,400+ young people who chose to grow with the
@@ -1179,7 +1144,6 @@ export default function App() {
                         </a>
                     </div>
                     <p
-                        style={{ fontFamily: "'DM Sans', sans-serif" }}
                         className="text-[#9CAFC8] text-xs mt-6"
                     >
                         No registration fee · Cancel anytime · Available across
@@ -1193,7 +1157,6 @@ export default function App() {
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
                         <p
-                            style={{ fontFamily: "'DM Sans', sans-serif" }}
                             className="text-[#6B84A3] text-sm"
                         >
                             © 2025 Global Youth Emerge ·
@@ -1205,9 +1168,6 @@ export default function App() {
                                     <a
                                         key={link}
                                         href="#"
-                                        style={{
-                                            fontFamily: "'DM Sans', sans-serif",
-                                        }}
                                         className="text-[#6B84A3] text-xs hover:text-white transition-colors"
                                     >
                                         {link}

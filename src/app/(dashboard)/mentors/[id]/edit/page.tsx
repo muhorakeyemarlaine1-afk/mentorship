@@ -52,6 +52,7 @@ export default async function EditMentorPage({
                         email: mentor.email,
                         title: mentor.title ?? "",
                         bio: mentor.bio ?? "",
+                        image: mentor.image ?? "",
                     }}
                 />
             </div>

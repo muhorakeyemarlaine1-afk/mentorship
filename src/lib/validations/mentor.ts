@@ -5,6 +5,7 @@ export const createMentorSchema = z.object({
     email: z.email({ error: "Please enter a valid email." }).trim(),
     title: z.string().trim().optional(),
     bio: z.string().trim().optional(),
+    image: z.string().trim().optional(),
     password: z
         .string()
         .min(8, { error: "Be at least 8 characters long." })
@@ -19,6 +20,7 @@ export const updateMentorSchema = z.object({
     email: z.email({ error: "Please enter a valid email." }).trim(),
     title: z.string().trim().optional(),
     bio: z.string().trim().optional(),
+    image: z.string().trim().optional(),
 })
 
 export type UpdateMentorInput = z.infer<typeof updateMentorSchema>

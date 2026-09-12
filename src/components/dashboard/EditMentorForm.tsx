@@ -5,10 +5,12 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
 import { updateMentorAction } from "@/actions/mentors"
+import { uploadProfileImageAction } from "@/actions/uploads"
 import {
     updateMentorSchema,
     type UpdateMentorInput,
 } from "@/lib/validations/mentor"
+import { ProfileImageInput } from "@/components/dashboard/ProfileImageInput"
 
 interface EditMentorFormProps {
     mentorId: string
@@ -20,10 +22,15 @@ export function EditMentorForm({
     defaultValues,
 }: EditMentorFormProps) {
     const [formError, setFormError] = useState<string | null>(null)
+    // undefined = untouched, null = removed, File = new image selected
+    const [imageFile, setImageFile] = useState<File | null | undefined>(
+        undefined
+    )
 
     const {
         register,
         handleSubmit,
+        watch,
         formState: { errors, isSubmitting },
     } = useForm<UpdateMentorInput>({
         resolver: zodResolver(updateMentorSchema),
@@ -32,7 +39,22 @@ export function EditMentorForm({
 
     async function onSubmit(values: UpdateMentorInput) {
         setFormError(null)
-        const result = await updateMentorAction(mentorId, values)
+
+        let image: string | undefined
+        if (imageFile === null) {
+            image = ""
+        } else if (imageFile) {
+            const formData = new FormData()
+            formData.append("image", imageFile)
+            const uploadResult = await uploadProfileImageAction(formData)
+            if (uploadResult?.error) {
+                setFormError(uploadResult.error)
+                return
+            }
+            image = uploadResult.url
+        }
+
+        const result = await updateMentorAction(mentorId, { ...values, image })
         if (result?.error) {
             setFormError(result.error)
         }
@@ -41,6 +63,12 @@ export function EditMentorForm({
     return (
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="flex flex-col gap-4 mb-6">
+                <ProfileImageInput
+                    name={watch("name")}
+                    initialImage={defaultValues.image}
+                    onChange={setImageFile}
+                />
+
                 <div>
                     <label className="block text-xs font-semibold text-[#4A6080] mb-1.5">
                         Full name

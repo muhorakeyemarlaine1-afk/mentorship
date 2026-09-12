@@ -19,7 +19,13 @@ const STATUS_STYLES: Record<ProgramListItem["status"], string> = {
     ARCHIVED: "bg-[#FDECEA] text-[#B71C1C]",
 }
 
-export function ProgramsList({ programs }: { programs: ProgramListItem[] }) {
+export function ProgramsList({
+    programs,
+    canManage = true,
+}: {
+    programs: ProgramListItem[]
+    canManage?: boolean
+}) {
     const [search, setSearch] = useState("")
 
     const filtered = useMemo(() => {
@@ -56,13 +62,15 @@ export function ProgramsList({ programs }: { programs: ProgramListItem[] }) {
                             className="pl-10 pr-4 py-2.5 rounded-full border border-[#E5E3F1] bg-white text-sm text-[#171139] placeholder-[#9C97BE] focus:outline-none focus:border-[#6C4FE0] w-64"
                         />
                     </div>
-                    <Link
-                        href="/programs/new"
-                        className="flex items-center gap-2 bg-[#6C4FE0] text-white text-sm font-semibold px-4 py-2.5 rounded-full hover:bg-[#5B3FD6] transition-colors shadow-sm shadow-[#6C4FE0]/30"
-                    >
-                        <PlusIcon className="w-4 h-4" />
-                        New Program
-                    </Link>
+                    {canManage && (
+                        <Link
+                            href="/programs/new"
+                            className="flex items-center gap-2 bg-[#6C4FE0] text-white text-sm font-semibold px-4 py-2.5 rounded-full hover:bg-[#5B3FD6] transition-colors shadow-sm shadow-[#6C4FE0]/30"
+                        >
+                            <PlusIcon className="w-4 h-4" />
+                            New Program
+                        </Link>
+                    )}
                 </div>
             </div>
 

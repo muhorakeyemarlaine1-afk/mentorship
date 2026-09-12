@@ -5,6 +5,7 @@ import crypto from "crypto"
 
 import { prisma } from "@/lib/prisma"
 import { logAudit } from "@/lib/audit"
+import { isEmailConfigured, sendPasswordResetEmail } from "@/lib/mail"
 import {
     forgotPasswordSchema,
     resetPasswordSchema,
@@ -44,7 +45,16 @@ export async function requestPasswordResetAction(values: ForgotPasswordInput) {
 
     await logAudit(null, "Requested password reset", "User", user.id)
 
-    return { success: true as const, resetUrl: `/reset-password/${token}` }
+    const resetPath = `/reset-password/${token}`
+
+    if (isEmailConfigured()) {
+        const appUrl = process.env.APP_URL || "http://localhost:3000"
+        await sendPasswordResetEmail(user.email, `${appUrl}${resetPath}`)
+        return { success: true as const, resetUrl: null }
+    }
+
+    // Fall back to surfacing the link directly when SMTP isn't configured.
+    return { success: true as const, resetUrl: resetPath }
 }
 
 export async function resetPasswordWithTokenAction(

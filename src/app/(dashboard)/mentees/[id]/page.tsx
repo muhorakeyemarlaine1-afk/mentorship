@@ -38,8 +38,16 @@ export default async function MenteePage({ params }: MenteePageProps) {
             <div className="bg-white rounded-2xl border border-[#EDEBF6] p-6">
                 <div className="flex items-start justify-between gap-6 flex-wrap mb-6">
                     <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-full bg-[#EFEAFF] text-[#6C4FE0] flex items-center justify-center font-bold text-xl shrink-0">
-                            {(mentee.name ?? mentee.email)[0]?.toUpperCase()}
+                        <div className="w-14 h-14 rounded-full bg-[#EFEAFF] text-[#6C4FE0] flex items-center justify-center font-bold text-xl shrink-0 overflow-hidden">
+                            {mentee.image ? (
+                                <img
+                                    src={mentee.image}
+                                    alt={mentee.name ?? mentee.email}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                (mentee.name ?? mentee.email)[0]?.toUpperCase()
+                            )}
                         </div>
                         <div>
                             <div className="flex items-center gap-2.5">

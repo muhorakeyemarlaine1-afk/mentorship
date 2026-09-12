@@ -18,9 +18,11 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default async function SessionPage({ params }: SessionPageProps) {
     const session = await auth()
-    if (session?.user.role !== "ADMIN") {
-        redirect("/dashboard")
+    if (!session?.user) {
+        redirect("/signin")
     }
+
+    const isAdmin = session.user.role === "ADMIN"
 
     const { id } = await params
     const mentorshipSession = await prisma.mentorshipSession.findUnique({
@@ -30,6 +32,13 @@ export default async function SessionPage({ params }: SessionPageProps) {
 
     if (!mentorshipSession) {
         notFound()
+    }
+
+    const isParticipant =
+        mentorshipSession.mentorId === session.user.id ||
+        mentorshipSession.menteeId === session.user.id
+    if (!isAdmin && !isParticipant) {
+        redirect("/sessions")
     }
 
     return (
@@ -96,12 +105,14 @@ export default async function SessionPage({ params }: SessionPageProps) {
                     </div>
                 )}
 
-                <div className="pt-5 border-t border-[#EDEBF6]">
-                    <SessionActions
-                        sessionId={mentorshipSession.id}
-                        status={mentorshipSession.status}
-                    />
-                </div>
+                {isAdmin && (
+                    <div className="pt-5 border-t border-[#EDEBF6]">
+                        <SessionActions
+                            sessionId={mentorshipSession.id}
+                            status={mentorshipSession.status}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     )

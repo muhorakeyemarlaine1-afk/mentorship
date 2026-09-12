@@ -32,12 +32,10 @@ export default async function DashboardGroupLayout({
 
     return (
         <div
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             className="flex min-h-screen bg-[#F6F7FB] text-[#171139]"
         >
             <Sidebar
                 user={session.user}
-                unreadNotifications={unreadNotifications}
                 unreadMessages={unreadMessages}
                 pendingApplications={pendingApplications}
             />

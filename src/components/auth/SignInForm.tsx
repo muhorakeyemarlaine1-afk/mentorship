@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 
 import { loginAction } from "@/actions/auth"
 import { signInSchema, type SignInInput } from "@/lib/validations/auth"
+import { PasswordInput } from "@/components/ui/password-input"
 
 export function SignInForm() {
     const [formError, setFormError] = useState<string | null>(null)
@@ -58,10 +59,8 @@ export function SignInForm() {
                             Forgot password?
                         </Link>
                     </div>
-                    <input
-                        type="password"
+                    <PasswordInput
                         placeholder="••••••••"
-                        className="w-full border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] transition-colors"
                         {...register("password")}
                     />
                     {errors.password && (

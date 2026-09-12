@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { useSession } from "next-auth/react"
+import { Menubar, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar"
 
 const LOGO_URL =
     "https://globalyouthemerge.org/wp-content/uploads/2025/05/Logo-global-youth.png"
@@ -49,17 +50,19 @@ export function Navbar({
                         />
                     </Link>
 
-                    <div className="hidden lg:flex items-end gap-7 -mb-1">
+                    <Menubar className="hidden lg:flex h-auto items-center gap-1 border-none bg-transparent p-0 shadow-none">
                         {NAV_LINKS.map((link) => (
-                            <Link
-                                key={link.label}
-                                href={link.href}
-                                className="text-xs font-bold text-[#4A6080] hover:text-[#1B4B8A] transition-colors whitespace-nowrap uppercase"
-                            >
-                                {link.label}
-                            </Link>
+                            <MenubarMenu key={link.label}>
+                                <MenubarTrigger
+                                    nativeButton={false}
+                                    render={<Link href={link.href} />}
+                                    className="rounded-lg px-2 py-1.5 text-xs font-bold text-[#4A6080] uppercase whitespace-nowrap transition-colors hover:bg-transparent hover:text-[#1B4B8A] aria-expanded:bg-transparent"
+                                >
+                                    {link.label}
+                                </MenubarTrigger>
+                            </MenubarMenu>
                         ))}
-                    </div>
+                    </Menubar>
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">

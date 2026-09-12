@@ -6,11 +6,21 @@ import { SessionsList } from "@/components/dashboard/SessionsList"
 
 export default async function SessionsPage() {
     const session = await auth()
-    if (session?.user.role !== "ADMIN") {
-        redirect("/dashboard")
+    if (!session?.user) {
+        redirect("/signin")
     }
 
+    const isAdmin = session.user.role === "ADMIN"
+
     const sessions = await prisma.mentorshipSession.findMany({
+        where: isAdmin
+            ? undefined
+            : {
+                  OR: [
+                      { mentorId: session.user.id },
+                      { menteeId: session.user.id },
+                  ],
+              },
         orderBy: { scheduledAt: "desc" },
         include: {
             mentor: { select: { name: true, email: true } },
@@ -29,6 +39,7 @@ export default async function SessionsPage() {
                     durationMinutes: s.durationMinutes,
                     status: s.status,
                 }))}
+                canManage={isAdmin}
             />
         </div>
     )

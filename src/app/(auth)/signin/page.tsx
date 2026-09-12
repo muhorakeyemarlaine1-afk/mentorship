@@ -9,7 +9,6 @@ const LOGO_URL =
 export default function SignInPage() {
     return (
         <div
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             className="min-h-screen flex flex-col bg-white text-[#0D1F3C]"
         >
             <Navbar />
@@ -34,7 +33,6 @@ export default function SignInPage() {
                             Sign in to your account
                         </h1>
                         <p
-                            style={{ fontFamily: "'DM Sans', sans-serif" }}
                             className="text-[#6B84A3] text-sm"
                         >
                             Continue your mentorship journey with Global Youth
@@ -47,7 +45,6 @@ export default function SignInPage() {
                     </div>
 
                     <p
-                        style={{ fontFamily: "'DM Sans', sans-serif" }}
                         className="text-center text-[#6B84A3] text-sm mt-6"
                     >
                         New to Global Youth Emerge?{" "}

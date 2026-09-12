@@ -12,7 +12,6 @@ import {
     ChatIcon,
     BookOpenIcon,
     BarChartIcon,
-    BellIcon,
     SettingsIcon,
     ShieldIcon,
     CreditCardIcon,
@@ -29,13 +28,21 @@ interface NavItem {
 }
 
 function buildMainNav(
+    role: "ADMIN" | "MENTOR" | "MENTEE",
     unreadMessages: number,
-    unreadNotifications: number,
 ): NavItem[] {
-    return [
+    const items: NavItem[] = [
         { label: "Dashboard", href: "/dashboard", icon: HomeIcon },
-        { label: "Mentors", href: "/mentors", icon: UsersIcon },
-        { label: "Mentees", href: "/mentees", icon: UserIcon },
+    ]
+
+    if (role === "ADMIN") {
+        items.push(
+            { label: "Mentors", href: "/mentors", icon: UsersIcon },
+            { label: "Mentees", href: "/mentees", icon: UserIcon },
+        )
+    }
+
+    items.push(
         {
             label: "AI Matchmaking",
             href: "/ai-matchmaking",
@@ -49,19 +56,20 @@ function buildMainNav(
             badge: unreadMessages || undefined,
         },
         { label: "Programs", href: "/programs", icon: BookOpenIcon },
-        {
-            label: "Reports & Analytics",
-            href: "/reports",
-            icon: BarChartIcon,
-        },
-        {
-            label: "Notifications",
-            href: "/notifications",
-            icon: BellIcon,
-            badge: unreadNotifications || undefined,
-        },
-        { label: "Settings", href: "/settings", icon: SettingsIcon },
-    ]
+    )
+
+    if (role === "ADMIN") {
+        items.push(
+            {
+                label: "Reports & Analytics",
+                href: "/reports",
+                icon: BarChartIcon,
+            },
+            { label: "Settings", href: "/settings", icon: SettingsIcon },
+        )
+    }
+
+    return items
 }
 
 function buildAdminNav(pendingApplications: number): NavItem[] {
@@ -113,12 +121,10 @@ interface SidebarUser {
 
 export function Sidebar({
     user,
-    unreadNotifications = 0,
     unreadMessages = 0,
     pendingApplications = 0,
 }: {
     user: SidebarUser
-    unreadNotifications?: number
     unreadMessages?: number
     pendingApplications?: number
 }) {
@@ -127,7 +133,7 @@ export function Sidebar({
     const isActive = (href: string) =>
         pathname === href || pathname.startsWith(`${href}/`)
 
-    const mainNav = buildMainNav(unreadMessages, unreadNotifications)
+    const mainNav = buildMainNav(user.role, unreadMessages)
     const adminNav = buildAdminNav(pendingApplications)
 
     return (

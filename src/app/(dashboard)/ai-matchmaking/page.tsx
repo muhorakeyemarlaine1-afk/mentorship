@@ -16,8 +16,40 @@ function scoreMatch(menteeTitle: string | null, mentorTitle: string | null) {
 
 export default async function AiMatchmakingPage() {
     const session = await auth()
-    if (session?.user.role !== "ADMIN") {
-        redirect("/dashboard")
+    if (!session?.user) {
+        redirect("/signin")
+    }
+
+    if (session.user.role !== "ADMIN") {
+        const matches = await prisma.mentorMatch.findMany({
+            where: {
+                status: "ACCEPTED",
+                OR: [
+                    { mentorId: session.user.id },
+                    { menteeId: session.user.id },
+                ],
+            },
+            include: {
+                mentor: { select: { name: true, email: true } },
+                mentee: { select: { name: true, email: true } },
+            },
+            orderBy: { createdAt: "desc" },
+        })
+
+        return (
+            <div className="px-8 py-6">
+                <MatchmakingBoard
+                    unmatched={[]}
+                    activeMatches={matches.map((m) => ({
+                        id: m.id,
+                        mentorName: m.mentor.name ?? m.mentor.email,
+                        menteeName: m.mentee.name ?? m.mentee.email,
+                        createdAt: m.createdAt.toISOString(),
+                    }))}
+                    readOnly
+                />
+            </div>
+        )
     }
 
     const [mentees, mentors, matches] = await Promise.all([

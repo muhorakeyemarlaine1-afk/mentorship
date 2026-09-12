@@ -10,6 +10,7 @@ import {
     menteeSignUpSchema,
     type MenteeSignUpInput,
 } from "@/lib/validations/application"
+import { PasswordInput } from "@/components/ui/password-input"
 
 const AGE_GROUPS = ["15–17", "18–22", "23–26", "27–30"]
 
@@ -55,7 +56,6 @@ export function GetStartedForm() {
                     You&apos;re in! 🎉
                 </h2>
                 <p
-                    style={{ fontFamily: "'DM Sans', sans-serif" }}
                     className="text-[#6B84A3] text-sm mb-6"
                 >
                     Your mentee account has been created. Sign in to complete
@@ -122,10 +122,9 @@ export function GetStartedForm() {
                         <option key={area}>{area}</option>
                     ))}
                 </select>
-                <input
-                    type="password"
+                <PasswordInput
                     placeholder="Create a password"
-                    className="sm:col-span-2 border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] transition-colors"
+                    wrapperClassName="sm:col-span-2"
                     {...register("password")}
                 />
                 {errors.password && (

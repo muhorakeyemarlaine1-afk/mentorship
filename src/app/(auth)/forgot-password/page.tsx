@@ -9,7 +9,6 @@ const LOGO_URL =
 export default function ForgotPasswordPage() {
     return (
         <div
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             className="min-h-screen flex flex-col bg-white text-[#0D1F3C]"
         >
             <Navbar />
@@ -34,7 +33,6 @@ export default function ForgotPasswordPage() {
                             Forgot your password?
                         </h1>
                         <p
-                            style={{ fontFamily: "'DM Sans', sans-serif" }}
                             className="text-[#6B84A3] text-sm"
                         >
                             No worries. Enter your email and we&apos;ll send
@@ -45,7 +43,6 @@ export default function ForgotPasswordPage() {
                     <ForgotPasswordForm />
 
                     <p
-                        style={{ fontFamily: "'DM Sans', sans-serif" }}
                         className="text-center text-[#6B84A3] text-sm mt-6"
                     >
                         Remembered your password?{" "}

@@ -9,7 +9,6 @@ const LOGO_URL =
 export default function GetStartedPage() {
     return (
         <div
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             className="min-h-screen flex flex-col bg-white text-[#0D1F3C]"
         >
             <Navbar />
@@ -35,7 +34,6 @@ export default function GetStartedPage() {
                         waiting for you
                     </h1>
                     <p
-                        style={{ fontFamily: "'DM Sans', sans-serif" }}
                         className="text-[#6B84A3] text-lg leading-relaxed mb-10"
                     >
                         Join 12,400+ young people who chose to grow with the
@@ -63,7 +61,6 @@ export default function GetStartedPage() {
                         </a>
                     </div>
                     <p
-                        style={{ fontFamily: "'DM Sans', sans-serif" }}
                         className="text-[#9CAFC8] text-xs mt-6"
                     >
                         No registration fee · Cancel anytime · Available
@@ -71,7 +68,6 @@ export default function GetStartedPage() {
                     </p>
 
                     <p
-                        style={{ fontFamily: "'DM Sans', sans-serif" }}
                         className="text-[#6B84A3] text-sm mt-10"
                     >
                         Already have an account?{" "}

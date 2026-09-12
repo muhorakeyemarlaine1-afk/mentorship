@@ -12,7 +12,6 @@ export function Footer() {
                         className="h-8 w-auto brightness-0 invert"
                     />
                     <span
-                        style={{ fontFamily: "'DM Sans', sans-serif" }}
                         className="text-[#6B84A3] text-sm"
                     >
                         © 2025 Global Youth Emerge ·
@@ -24,7 +23,6 @@ export function Footer() {
                         <a
                             key={l}
                             href="#"
-                            style={{ fontFamily: "'DM Sans', sans-serif" }}
                             className="text-[#6B84A3] text-xs hover:text-white transition-colors"
                         >
                             {l}
