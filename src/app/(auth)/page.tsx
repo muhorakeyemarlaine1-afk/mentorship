@@ -770,7 +770,7 @@ export default function App() {
             </section>
 
             {/* ── FEATURED MENTORS ─────────────────────────────────────── */}
-            <section className="py-24 max-w-7xl mx-auto px-6">
+            {/* <section className="py-24 max-w-7xl mx-auto px-6">
                 <div className="mb-14">
                     <div className="text-[#E07830] text-sm font-bold uppercase tracking-widest mb-3">
                         Featured Mentors
@@ -857,10 +857,10 @@ export default function App() {
                         View All Mentors
                     </Link>
                 </div>
-            </section>
+            </section> */}
 
             {/* ── IMPACT ───────────────────────────────────────────────── */}
-            {/* <section
+            <section
                 id="impact"
                 className="bg-[#0D2B5E] py-24 relative overflow-hidden"
             >
@@ -973,10 +973,10 @@ export default function App() {
                         </div>
                     </div>
                 </div>
-            </section> */}
+            </section> 
 
             {/* ── TESTIMONIALS ─────────────────────────────────────────── */}
-            {/* <section id="stories" className="py-24 max-w-7xl mx-auto px-6">
+             <section id="stories" className="py-24 max-w-7xl mx-auto px-6">
                 <div className="mb-14 flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
                         <div className="text-[#E07830] text-sm font-bold uppercase tracking-widest mb-3">
@@ -1091,7 +1091,7 @@ export default function App() {
                         </button>
                     ))}
                 </div>
-            </section> */}
+            </section>
 
             {/* ── JOIN CTA ──────────────────────────────────────────────── */}
             <section
