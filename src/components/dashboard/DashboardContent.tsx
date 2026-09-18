@@ -102,8 +102,8 @@ export function DashboardContent({
     ]
 
     const QUICK_ACTIONS = [
-        { label: "Add Mentor", href: "/mentors/new", icon: UserIcon, bg: "#EFEAFF", color: "#6C4FE0" },
-        { label: "Add Mentee", href: "/mentees/new", icon: UsersIcon, bg: "#E6F7EE", color: "#1BA766" },
+        { label: "Add Mentor", href: "/mentors", icon: UserIcon, bg: "#EFEAFF", color: "#6C4FE0" },
+        { label: "Add Mentee", href: "/mentees", icon: UsersIcon, bg: "#E6F7EE", color: "#1BA766" },
         { label: "Create Program", href: "/programs/new", icon: BookOpenIcon, bg: "#FFEEE1", color: "#E0793F" },
         { label: "AI Matchmaking", href: "/ai-matchmaking", icon: SparkleIcon, bg: "#E7F0FF", color: "#3167E0" },
         { label: "Manage Settings", href: "/settings", icon: SettingsIcon, bg: "#F1F0FA", color: "#6B6690" },

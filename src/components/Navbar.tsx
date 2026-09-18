@@ -14,7 +14,7 @@ const NAV_LINKS = [
     { label: "How It Works", href: "/#how-it-works" },
     // { label: "Impact", href: "/#impact" },
     // { label: "Stories", href: "/#stories" },
-    { label: "Join Us", href: "/#join" },
+    { label: "Join Us", href: "/get-started" },
 ]
 
 interface NavbarProps {
@@ -38,7 +38,7 @@ export function Navbar({
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-white backdrop-blur-md border-b border-[#E2EAF4]">
             <div className="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between gap-6">
-                <div className="flex items-center gap-6 min-w-0">
+                <div className="flex justify-between items-center gap-6 w-full">
                     <Link
                         href="/"
                         className="flex items-center gap-3 shrink-0"
@@ -63,58 +63,6 @@ export function Navbar({
                             </MenubarMenu>
                         ))}
                     </Menubar>
-                </div>
-
-                <div className="flex items-center gap-3 shrink-0">
-                    {isSignedIn ? (
-                        <Link
-                            href="/dashboard"
-                            className="bg-[#E07830] text-white text-sm font-bold px-5 py-2.5 rounded-full hover:bg-[#C96820] transition-all hover:scale-105 active:scale-100 shadow-sm"
-                        >
-                            Dashboard
-                        </Link>
-                    ) : (
-                        <>
-                            <Link
-                                href="/signin"
-                                className="hidden md:block text-sm font-semibold text-[#1B4B8A] hover:underline"
-                            >
-                                Sign In
-                            </Link>
-                            <Link
-                                href="/get-started"
-                                className="bg-[#E07830] text-white text-sm font-bold px-5 py-2.5 rounded-full hover:bg-[#C96820] transition-all hover:scale-105 active:scale-100 shadow-sm"
-                            >
-                                Get Started Free
-                            </Link>
-                        </>
-                    )}
-                    <button
-                        className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    >
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            className="w-5 h-5 text-[#1B4B8A]"
-                        >
-                            {mobileMenuOpen ? (
-                                <path
-                                    d="M6 6l12 12M6 18L18 6"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                />
-                            ) : (
-                                <path
-                                    d="M4 6h16M4 12h16M4 18h16"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                />
-                            )}
-                        </svg>
-                    </button>
                 </div>
             </div>
 

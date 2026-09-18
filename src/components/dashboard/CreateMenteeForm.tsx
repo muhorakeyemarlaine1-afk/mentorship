@@ -49,11 +49,13 @@ export function CreateMenteeForm() {
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
-            <div className="flex flex-col gap-4 mb-6">
-                <ProfileImageInput
-                    name={watch("name")}
-                    onChange={setImageFile}
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="md:col-span-2">
+                    <ProfileImageInput
+                        name={watch("name")}
+                        onChange={setImageFile}
+                    />
+                </div>
 
                 <div>
                     <label className="block text-xs font-semibold text-[#4A6080] mb-1.5">
@@ -108,23 +110,6 @@ export function CreateMenteeForm() {
 
                 <div>
                     <label className="block text-xs font-semibold text-[#4A6080] mb-1.5">
-                        Bio
-                    </label>
-                    <textarea
-                        rows={4}
-                        placeholder="A short bio about this mentee..."
-                        className="w-full border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] transition-colors resize-none"
-                        {...register("bio")}
-                    />
-                    {errors.bio && (
-                        <p className="mt-1.5 text-xs font-medium text-red-600">
-                            {errors.bio.message}
-                        </p>
-                    )}
-                </div>
-
-                <div>
-                    <label className="block text-xs font-semibold text-[#4A6080] mb-1.5">
                         Temporary password
                     </label>
                     <PasswordInput
@@ -139,6 +124,23 @@ export function CreateMenteeForm() {
                     <p className="mt-1.5 text-xs text-[#6B84A3]">
                         The mentee will be asked to reset this on first login.
                     </p>
+                </div>
+
+                <div className="md:col-span-2">
+                    <label className="block text-xs font-semibold text-[#4A6080] mb-1.5">
+                        Bio
+                    </label>
+                    <textarea
+                        rows={4}
+                        placeholder="A short bio about this mentee..."
+                        className="w-full border border-[#D9E5F5] rounded-xl px-4 py-3 text-sm text-[#0D1F3C] placeholder-[#9CAFC8] focus:outline-none focus:border-[#1B4B8A] transition-colors resize-none"
+                        {...register("bio")}
+                    />
+                    {errors.bio && (
+                        <p className="mt-1.5 text-xs font-medium text-red-600">
+                            {errors.bio.message}
+                        </p>
+                    )}
                 </div>
             </div>
 

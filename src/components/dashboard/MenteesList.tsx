@@ -4,6 +4,15 @@ import Link from "next/link"
 import { useMemo, useState } from "react"
 
 import { SearchIcon, PlusIcon } from "@/components/dashboard/icons"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+import { CreateMenteeForm } from "@/components/dashboard/CreateMenteeForm"
 
 export interface MenteeListItem {
     id: string
@@ -52,13 +61,24 @@ export function MenteesList({ mentees }: { mentees: MenteeListItem[] }) {
                         />
                     </div>
 
-                    <Link
-                        href="/mentees/new"
-                        className="flex items-center gap-2 bg-[#6C4FE0] text-white text-sm font-semibold px-4 py-2.5 rounded-full hover:bg-[#5B3FD6] transition-colors shadow-sm shadow-[#6C4FE0]/30"
-                    >
-                        <PlusIcon className="w-4 h-4" />
-                        Add Mentee
-                    </Link>
+                    <Dialog>
+                        <DialogTrigger className="flex items-center gap-2 bg-[#6C4FE0] text-white text-sm font-semibold px-4 py-2.5 rounded-full hover:bg-[#5B3FD6] transition-colors shadow-sm shadow-[#6C4FE0]/30">
+                            <PlusIcon className="w-4 h-4" />
+                            Add Mentee
+                        </DialogTrigger>
+                        <DialogContent className="max-h-[90vh] w-full max-w-2xl overflow-y-auto p-6">
+                            <DialogHeader>
+                                <DialogTitle>Add a Mentee</DialogTitle>
+                                <DialogDescription>
+                                    Create a new mentee account for the
+                                    platform.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="mt-4">
+                                <CreateMenteeForm />
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
 
