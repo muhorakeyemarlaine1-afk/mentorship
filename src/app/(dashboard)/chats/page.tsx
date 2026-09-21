@@ -2,10 +2,15 @@ import { redirect } from "next/navigation"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { ChatsPanel, type ChatPerson } from "@/components/dashboard/ChatsPanel"
+import {
+    ChatsPanel,
+    type ChatPerson,
+    type ConversationMessageView,
+    type ConversationSummary,
+} from "@/components/dashboard/ChatsPanel"
 
 interface ChatsPageProps {
-    searchParams: Promise<{ with?: string }>
+    searchParams: Promise<{ with?: string; conversation?: string }>
 }
 
 function relativeTime(date: Date) {
@@ -25,8 +30,10 @@ export default async function ChatsPage({ searchParams }: ChatsPageProps) {
         redirect("/signin")
     }
 
-    const { with: activeUserId } = await searchParams
+    const { with: activeUserId, conversation: activeConversationId } =
+        await searchParams
     const currentUserId = session.user.id
+    const currentUserRole = session.user.role as "ADMIN" | "MENTOR" | "MENTEE"
 
     const people = await prisma.user.findMany({
         where: {
@@ -117,6 +124,100 @@ export default async function ChatsPage({ searchParams }: ChatsPageProps) {
         }
     }
 
+    let conversationsRaw: Awaited<
+        ReturnType<typeof prisma.conversation.findMany>
+    > = []
+    if (currentUserRole === "MENTEE") {
+        conversationsRaw = await prisma.conversation.findMany({
+            where: { menteeId: currentUserId },
+            orderBy: { updatedAt: "desc" },
+        })
+    } else if (currentUserRole === "MENTOR") {
+        const [mine, openQueue] = await Promise.all([
+            prisma.conversation.findMany({
+                where: { mentorId: currentUserId },
+                orderBy: { updatedAt: "desc" },
+            }),
+            prisma.conversation.findMany({
+                where: { status: "ESCALATED", mentorId: null },
+                orderBy: { updatedAt: "desc" },
+            }),
+        ])
+        conversationsRaw = [...mine, ...openQueue]
+    }
+
+    const conversationUserIds = Array.from(
+        new Set(
+            conversationsRaw.flatMap((c) => [c.menteeId, c.mentorId]).filter(
+                (id): id is string => id !== null
+            )
+        )
+    )
+    const conversationUsers = conversationUserIds.length
+        ? await prisma.user.findMany({
+              where: { id: { in: conversationUserIds } },
+              select: { id: true, name: true, email: true },
+          })
+        : []
+    const userLabel = (id: string) => {
+        const user = conversationUsers.find((u) => u.id === id)
+        return user?.name ?? user?.email ?? "Unknown"
+    }
+
+    const conversations: ConversationSummary[] = conversationsRaw.map((c) => ({
+        id: c.id,
+        menteeId: c.menteeId,
+        menteeName: userLabel(c.menteeId),
+        mentorId: c.mentorId,
+        mentorName: c.mentorId ? userLabel(c.mentorId) : null,
+        status: c.status,
+        isOpenQueueItem:
+            currentUserRole === "MENTOR" &&
+            c.status === "ESCALATED" &&
+            c.mentorId === null,
+        time: relativeTime(c.updatedAt),
+    }))
+
+    const activeConversationRaw = activeConversationId
+        ? conversationsRaw.find((c) => c.id === activeConversationId)
+        : null
+
+    let conversationMessages: ConversationMessageView[] = []
+    if (activeConversationRaw) {
+        const rows = await prisma.conversationMessage.findMany({
+            where: { conversationId: activeConversationRaw.id },
+            orderBy: { createdAt: "asc" },
+        })
+        conversationMessages = rows.map((m) => ({
+            id: m.id,
+            author: m.author,
+            mine: m.authorUserId === currentUserId,
+            text: m.content,
+            time: m.createdAt.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+            }),
+        }))
+    }
+
+    const activeConversation: ConversationSummary | null = activeConversationRaw
+        ? {
+              id: activeConversationRaw.id,
+              menteeId: activeConversationRaw.menteeId,
+              menteeName: userLabel(activeConversationRaw.menteeId),
+              mentorId: activeConversationRaw.mentorId,
+              mentorName: activeConversationRaw.mentorId
+                  ? userLabel(activeConversationRaw.mentorId)
+                  : null,
+              status: activeConversationRaw.status,
+              isOpenQueueItem:
+                  currentUserRole === "MENTOR" &&
+                  activeConversationRaw.status === "ESCALATED" &&
+                  activeConversationRaw.mentorId === null,
+              time: relativeTime(activeConversationRaw.updatedAt),
+          }
+        : null
+
     return (
         <div className="h-screen flex flex-col">
             <div className="flex items-center justify-between gap-6 flex-wrap px-8 py-6 shrink-0">
@@ -148,6 +249,11 @@ export default async function ChatsPage({ searchParams }: ChatsPageProps) {
                         : null
                 }
                 messages={messages}
+                conversations={conversations}
+                activeConversation={activeConversation}
+                conversationMessages={conversationMessages}
+                currentUserId={currentUserId}
+                currentUserRole={currentUserRole}
             />
         </div>
     )

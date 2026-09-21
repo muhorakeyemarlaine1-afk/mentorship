@@ -37,6 +37,17 @@ enum ApplicationStatus {
   REJECTED
 }
 
+enum ConversationStatus {
+  AI_ONLY
+  ESCALATED
+}
+
+enum ConversationAuthor {
+  MENTEE
+  ASSISTANT
+  MENTOR
+}
+
 model User {
   id                String   @id @default(cuid())
   name              String?
@@ -62,6 +73,9 @@ model User {
   receivedMessages Message[]           @relation("ReceivedMessages")
   mentorMatches    MentorMatch[]       @relation("MentorMatches")
   menteeMatches    MentorMatch[]       @relation("MenteeMatches")
+
+  menteeConversations Conversation[] @relation("MenteeConversations")
+  mentorConversations Conversation[] @relation("MentorConversations")
 }
 
 model MentorshipSession {
@@ -120,6 +134,35 @@ model MentorMatch {
   createdAt DateTime    @default(now())
 
   @@unique([mentorId, menteeId])
+}
+
+model Conversation {
+  id          String             @id @default(cuid())
+  menteeId    String
+  mentee      User               @relation("MenteeConversations", fields: [menteeId], references: [id], onDelete: Cascade)
+  mentorId    String?
+  mentor      User?              @relation("MentorConversations", fields: [mentorId], references: [id], onDelete: SetNull)
+  status      ConversationStatus @default(AI_ONLY)
+  escalatedAt DateTime?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  messages ConversationMessage[]
+
+  @@index([menteeId])
+  @@index([status, mentorId])
+}
+
+model ConversationMessage {
+  id             String             @id @default(cuid())
+  conversationId String
+  conversation   Conversation       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  author         ConversationAuthor
+  authorUserId   String?
+  content        String
+  createdAt      DateTime           @default(now())
+
+  @@index([conversationId, createdAt])
 }
 
 model MentorApplication {
