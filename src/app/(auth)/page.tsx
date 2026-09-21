@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Navbar } from "@/components/Navbar"
 import { GetStartedForm } from "@/components/auth/GetStartedForm"
 
@@ -416,30 +417,62 @@ const MENTORS = [
 
 const TESTIMONIALS = [
     {
-        name: "Temi A.",
-        location: "Lagos, Nigeria",
+        name: "Thiery Muhoza",
+        location: "Bujumbura, Burundi",
+        age: 23,
+        text: "Thiery began as a security guard at Interbank Burundi after leaving school in Year 6. Through GYE mentorship and support for driving lessons, he obtained his driving licence and moved toward the livelihood he had always wanted. Today, he owns and operates his own taxi and supports his family.",
+        category: "Livelihoods & Mentorship",
+        img: "/images/home-1.jpg",
+    },
+    {
+        name: "Peter Karanja",
+        location: "Kayole, Nairobi",
+        text: "Peter had been living on the streets and battling addiction. GYE approached him, listened without judgment, provided a safe place to stay, clean clothes, counselling three times a week, and consistent mentorship. Within three months, he overcame addiction, began doing small jobs, rebuilt his confidence and reconciled with his parents.",
+        category: "Mentorship & Second Chances",
+        img: "/images/home-2.jpg",
+    },
+    {
+        name: "Mary Otieno",
+        location: "Kibera, Nairobi",
+        age: 28,
+        text: "Mary is a widow and single mother of three. GYE helped stabilize her situation, supported her rent, provided business training and continued mentorship. Her fish stall grew into a stronger, sustainable business. Today she runs two businesses, employs two people and has all three children back in school.",
+        category: "Entrepreneurship & Women's Empowerment",
+        img: "/images/home-3.jpeg",
+    },
+    {
+        name: "David",
+        location: "Kayole, Nairobi",
         age: 19,
-        text: "Before GYE Mentorship, I had zero idea how to apply for scholarships abroad. Six months later I have a full ride to study Computer Science in the Netherlands.",
-        category: "Education & Scholarships",
-        img: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=200&h=200&fit=crop&auto=format",
+        text: "David started repairing phones on a wooden crate with borrowed tools. After GYE's Youth Skills & Business Training Workshop, he received hands-on training in electronics repair, business management, customer service and bookkeeping. A startup grant helped him open “David's Corner”, support his mother, help his sister return to school and train two other young men.",
+        category: "Skills, Enterprise & Mentorship",
+        img: "/images/Youth3.jpg",
     },
     {
-        name: "Sipho M.",
-        location: "Johannesburg, South Africa",
-        age: 22,
-        text: "My mentor helped me pitch to investors, refine my business model, and close our first round of funding. It was genuinely transformational.",
-        category: "Entrepreneurship",
-        img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&auto=format",
+        name: "Mercy",
+        location: "Eastlands, Nairobi",
+        age: 23,
+        text: "Mercy had a passion for fashion but lacked capital after leaving college. Through GYE's Youth Business Empowerment Program, she received financial literacy training, startup financing and mentorship in branding, customer service and marketing. Her fashion business grew into a small fashion house, and she hired two other young women who had been unemployed.",
+        category: "Women & Entrepreneurship",
+        img: "/images/1.jpg",
     },
     {
-        name: "Aisha K.",
-        location: "Nairobi, Kenya",
-        age: 20,
-        text: "I was struggling silently with anxiety. Finding a safe space with a qualified mentor changed everything for me. I finally feel in control of my life.",
-        category: "Mental Health & Well-being",
-        img: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&h=200&fit=crop&auto=format",
+        name: "Akeza",
+        location: "Makamba, Burundi",
+        text: "Akeza came from a farming family and faced limited opportunities for university. GYE connected her to career guidance, mentorship and entrepreneurship training, where she learned business planning, financial management and marketing. With a small grant she launched an agri-business, created two jobs and later returned as a mentor to inspire other young people.",
+        category: "Education, Mentorship & Enterprise",
+        img: "/images/Blog1.jpg",
     },
 ]
+
+const TESTIMONIALS_PER_PAGE = 3
+const TESTIMONIAL_PAGES = Array.from(
+    { length: Math.ceil(TESTIMONIALS.length / TESTIMONIALS_PER_PAGE) },
+    (_, i) =>
+        TESTIMONIALS.slice(
+            i * TESTIMONIALS_PER_PAGE,
+            i * TESTIMONIALS_PER_PAGE + TESTIMONIALS_PER_PAGE,
+        ),
+)
 
 const STATS = [
     { value: "12,400+", label: "Youth Mentored" },
@@ -450,7 +483,7 @@ const STATS = [
 
 export default function App() {
     const [activeCategory, setActiveCategory] = useState<number | null>(null)
-    const [activeTestimonial, setActiveTestimonial] = useState(0)
+    const [activeStoryPage, setActiveStoryPage] = useState(0)
 
     return (
         <div
@@ -989,19 +1022,20 @@ export default function App() {
                         </h2>
                     </div>
                     <div className="flex gap-2 items-center">
-                        {TESTIMONIALS.map((_, i) => (
+                        {TESTIMONIAL_PAGES.map((_, i) => (
                             <button
                                 key={i}
-                                onClick={() => setActiveTestimonial(i)}
+                                onClick={() => setActiveStoryPage(i)}
+                                aria-label={`Go to page ${i + 1}`}
                                 className="rounded-full transition-all"
                                 style={{
                                     width:
-                                        i === activeTestimonial
+                                        i === activeStoryPage
                                             ? "28px"
                                             : "10px",
                                     height: "10px",
                                     backgroundColor:
-                                        i === activeTestimonial
+                                        i === activeStoryPage
                                             ? "#1B4B8A"
                                             : "#CBD5E1",
                                 }}
@@ -1010,86 +1044,86 @@ export default function App() {
                     </div>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-6">
-                    {TESTIMONIALS.map((t, i) => (
-                        <button
-                            key={t.name}
-                            onClick={() => setActiveTestimonial(i)}
-                            className="text-left rounded-2xl p-7 border transition-all duration-300 hover:-translate-y-1"
+                <div className="relative">
+                    <div className="overflow-hidden rounded-2xl">
+                        <div
+                            className="flex transition-transform duration-500 ease-out"
                             style={{
-                                backgroundColor:
-                                    i === activeTestimonial
-                                        ? "#0D2B5E"
-                                        : "#FFFFFF",
-                                borderColor:
-                                    i === activeTestimonial
-                                        ? "#1B4B8A"
-                                        : "#E2EAF4",
-                                transform:
-                                    i === activeTestimonial
-                                        ? "scale(1.02)"
-                                        : "scale(1)",
-                                boxShadow:
-                                    i === activeTestimonial
-                                        ? "0 20px 40px rgba(13,43,94,0.2)"
-                                        : "none",
+                                transform: `translateX(-${activeStoryPage * 100}%)`,
                             }}
                         >
-                            <div className="flex items-center gap-3 mb-5">
-                                <img
-                                    src={t.img}
-                                    alt={t.name}
-                                    className="w-12 h-12 rounded-full object-cover bg-[#EEF3FA]"
-                                />
-                                <div>
-                                    <div
-                                        className="font-bold text-sm"
-                                        style={{
-                                            color:
-                                                i === activeTestimonial
-                                                    ? "#FFFFFF"
-                                                    : "#0D1F3C",
-                                        }}
-                                    >
-                                        {t.name}
-                                    </div>
-                                    <div
-                                        className="text-xs mt-0.5"
-                                        style={{
-                                            color:
-                                                i === activeTestimonial
-                                                    ? "#93C5FD"
-                                                    : "#9CAFC8",
-                                        }}
-                                    >
-                                        {t.location} · Age {t.age}
+                            {TESTIMONIAL_PAGES.map((page, pageIndex) => (
+                                <div
+                                    key={pageIndex}
+                                    className="w-full shrink-0 px-1"
+                                >
+                                    <div className="grid md:grid-cols-3 gap-6">
+                                        {page.map((t) => (
+                                            <div
+                                                key={t.name}
+                                                className="rounded-2xl p-7 border bg-white"
+                                                style={{
+                                                    borderColor: "#E2EAF4",
+                                                }}
+                                            >
+                                                <div className="flex items-center gap-3 mb-5">
+                                                    <img
+                                                        src={t.img}
+                                                        alt={t.name}
+                                                        className="w-12 h-12 rounded-full object-cover bg-[#EEF3FA]"
+                                                    />
+                                                    <div>
+                                                        <div className="font-bold text-sm text-[#0D1F3C]">
+                                                            {t.name}
+                                                        </div>
+                                                        <div className="text-xs mt-0.5 text-[#9CAFC8]">
+                                                            {t.location}
+                                                            {t.age
+                                                                ? ` · Age ${t.age}`
+                                                                : ""}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="text-xs font-semibold uppercase tracking-wider mb-3 text-[#1B4B8A]">
+                                                    {t.category}
+                                                </div>
+                                                <p className="text-sm leading-relaxed text-[#4A6080]">
+                                                    &ldquo;{t.text}&rdquo;
+                                                </p>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                            </div>
-                            <div
-                                className="text-xs font-semibold uppercase tracking-wider mb-3"
-                                style={{
-                                    color:
-                                        i === activeTestimonial
-                                            ? "#E07830"
-                                            : "#1B4B8A",
-                                }}
-                            >
-                                {t.category}
-                            </div>
-                            <p
-                                style={{
-                                    color:
-                                        i === activeTestimonial
-                                            ? "#BFDBFE"
-                                            : "#4A6080",
-                                }}
-                                className="text-sm leading-relaxed"
-                            >
-                                &ldquo;{t.text}&rdquo;
-                            </p>
-                        </button>
-                    ))}
+                            ))}
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={() =>
+                            setActiveStoryPage(
+                                (activeStoryPage -
+                                    1 +
+                                    TESTIMONIAL_PAGES.length) %
+                                    TESTIMONIAL_PAGES.length,
+                            )
+                        }
+                        aria-label="Previous stories"
+                        className="hidden md:flex items-center justify-center absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-white border border-[#E2EAF4] shadow-lg text-[#1B4B8A] hover:bg-[#EEF3FA] transition-colors"
+                    >
+                        <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                        onClick={() =>
+                            setActiveStoryPage(
+                                (activeStoryPage + 1) %
+                                    TESTIMONIAL_PAGES.length,
+                            )
+                        }
+                        aria-label="Next stories"
+                        className="hidden md:flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-12 h-12 rounded-full bg-white border border-[#E2EAF4] shadow-lg text-[#1B4B8A] hover:bg-[#EEF3FA] transition-colors"
+                    >
+                        <ChevronRight className="w-5 h-5" />
+                    </button>
                 </div>
             </section>
 
