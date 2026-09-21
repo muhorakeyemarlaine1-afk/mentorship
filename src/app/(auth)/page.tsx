@@ -473,6 +473,11 @@ const TESTIMONIAL_PAGES = Array.from(
             i * TESTIMONIALS_PER_PAGE + TESTIMONIALS_PER_PAGE,
         ),
 )
+// Must match the `story-autoscroll` keyframes' duration in globals.css.
+const STORY_CYCLE_SECONDS = 18
+// Rendered twice back to back so the marquee loop is seamless — see the
+// comment on `.story-track` in globals.css.
+const TESTIMONIAL_PAGES_LOOPED = [...TESTIMONIAL_PAGES, ...TESTIMONIAL_PAGES]
 
 const STATS = [
     { value: "12,400+", label: "Youth Mentored" },
@@ -483,7 +488,13 @@ const STATS = [
 
 export default function App() {
     const [activeCategory, setActiveCategory] = useState<number | null>(null)
-    const [activeStoryPage, setActiveStoryPage] = useState(0)
+    // `key` forces the track to remount (restarting the CSS animation from
+    // its 0% keyframe), `page` is only the last manually chosen page — it
+    // does not track live position during autoplay.
+    const [storyRestart, setStoryRestart] = useState({ key: 0, page: 0 })
+
+    const jumpToStoryPage = (page: number) =>
+        setStoryRestart((s) => ({ key: s.key + 1, page }))
 
     return (
         <div
@@ -1025,17 +1036,17 @@ export default function App() {
                         {TESTIMONIAL_PAGES.map((_, i) => (
                             <button
                                 key={i}
-                                onClick={() => setActiveStoryPage(i)}
+                                onClick={() => jumpToStoryPage(i)}
                                 aria-label={`Go to page ${i + 1}`}
                                 className="rounded-full transition-all"
                                 style={{
                                     width:
-                                        i === activeStoryPage
+                                        i === storyRestart.page
                                             ? "28px"
                                             : "10px",
                                     height: "10px",
                                     backgroundColor:
-                                        i === activeStoryPage
+                                        i === storyRestart.page
                                             ? "#1B4B8A"
                                             : "#CBD5E1",
                                 }}
@@ -1047,15 +1058,24 @@ export default function App() {
                 <div className="relative">
                     <div className="overflow-hidden rounded-2xl">
                         <div
-                            className="flex transition-transform duration-500 ease-out"
+                            key={storyRestart.key}
+                            className="flex story-track"
                             style={{
-                                transform: `translateX(-${activeStoryPage * 100}%)`,
+                                animationDelay: `-${
+                                    (storyRestart.page * STORY_CYCLE_SECONDS) /
+                                    TESTIMONIAL_PAGES.length
+                                }s`,
                             }}
                         >
-                            {TESTIMONIAL_PAGES.map((page, pageIndex) => (
+                            {TESTIMONIAL_PAGES_LOOPED.map((page, i) => (
                                 <div
-                                    key={pageIndex}
-                                    className="w-full shrink-0 px-1"
+                                    key={i}
+                                    className="w-full shrink-0 px-1 cursor-pointer"
+                                    aria-hidden={
+                                        i >= TESTIMONIAL_PAGES.length
+                                            ? true
+                                            : undefined
+                                    }
                                 >
                                     <div className="grid md:grid-cols-3 gap-6">
                                         {page.map((t) => (
@@ -1100,8 +1120,8 @@ export default function App() {
 
                     <button
                         onClick={() =>
-                            setActiveStoryPage(
-                                (activeStoryPage -
+                            jumpToStoryPage(
+                                (storyRestart.page -
                                     1 +
                                     TESTIMONIAL_PAGES.length) %
                                     TESTIMONIAL_PAGES.length,
@@ -1114,8 +1134,8 @@ export default function App() {
                     </button>
                     <button
                         onClick={() =>
-                            setActiveStoryPage(
-                                (activeStoryPage + 1) %
+                            jumpToStoryPage(
+                                (storyRestart.page + 1) %
                                     TESTIMONIAL_PAGES.length,
                             )
                         }

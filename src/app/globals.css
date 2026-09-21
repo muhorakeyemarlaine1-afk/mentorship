@@ -128,3 +128,26 @@
         @apply font-nunito;
     }
 }
+
+/* Continuous rightward marquee: page.tsx renders the story pages twice back
+   to back, and this scrolls linearly through exactly one full set (2 pages
+   = -200%) before looping — since the second copy is identical to the
+   first, the loop point is seamless. If the page count changes, the
+   duplication in page.tsx and this -200% (and STORY_CYCLE_SECONDS) need
+   updating together. */
+@keyframes story-autoscroll {
+    0% {
+        transform: translateX(0%);
+    }
+    100% {
+        transform: translateX(-200%);
+    }
+}
+
+.story-track {
+    animation: story-autoscroll 18s linear infinite;
+}
+
+.story-track:hover {
+    animation-play-state: paused;
+}
