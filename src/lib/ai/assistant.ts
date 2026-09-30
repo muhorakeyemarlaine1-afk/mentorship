@@ -17,11 +17,42 @@ export async function* streamAssistantReply(
     signal?: AbortSignal
 ): AsyncGenerator<string, void, unknown> {
     const last = history.at(-1)?.content ?? ""
-    const canned = `Thanks for sharing that — tell me more about what's going on with "${last}". If you'd like, you can also request a human mentor at any point using the button above.`
+    const canned = `Thanks for sharing that — tell me more about what's going on with "${last}". If you'd like, you can ask to talk to a human mentor at any point.`
 
     for (const word of canned.split(" ")) {
         if (signal?.aborted) return
         yield word + " "
         await new Promise((resolve) => setTimeout(resolve, 40))
     }
+}
+
+/**
+ * Stub title generator. Swap the body for a short, non-streaming provider call
+ * ("Suggest a 3-6 word title for this conversation") — keep the signature.
+ */
+export async function suggestConversationTitle(
+    history: AssistantHistoryMessage[]
+): Promise<string> {
+    const firstUserMessage =
+        history.find((m) => m.role === "user")?.content ?? ""
+    const cleaned = firstUserMessage
+        .replace(/\s+/g, " ")
+        .replace(/^(hi|hello|hey)[,!. ]*/i, "")
+        .trim()
+    if (!cleaned) return "New chat"
+
+    const words = cleaned.split(" ").slice(0, 6).join(" ")
+    const title = words.length < cleaned.length ? `${words}…` : words
+    return title.charAt(0).toUpperCase() + title.slice(1)
+}
+
+const HUMAN_MENTOR_PATTERN =
+    /\b(talk|speak|chat|connect me)\s+(to|with)\s+(a|an|my|the|some)?\s*(human|real person|person|mentor|someone)\b|\b(human|real) mentor\b/i
+
+/**
+ * Whether the mentee is asking to hand the chat over to a human mentor.
+ * A real provider could replace this with a tool call / classifier.
+ */
+export function wantsHumanMentor(content: string) {
+    return HUMAN_MENTOR_PATTERN.test(content)
 }

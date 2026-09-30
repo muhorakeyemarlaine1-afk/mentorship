@@ -142,6 +142,7 @@ model Conversation {
   mentee      User               @relation("MenteeConversations", fields: [menteeId], references: [id], onDelete: Cascade)
   mentorId    String?
   mentor      User?              @relation("MentorConversations", fields: [mentorId], references: [id], onDelete: SetNull)
+  title       String?
   status      ConversationStatus @default(AI_ONLY)
   escalatedAt DateTime?
   createdAt   DateTime           @default(now())

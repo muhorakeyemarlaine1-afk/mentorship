@@ -4,9 +4,7 @@ import Link from "next/link"
 import { useState } from "react"
 
 import { Navbar } from "@/components/Navbar"
-
-const LOGO_URL =
-    "https://globalyouthemerge.org/wp-content/uploads/2025/05/Logo-global-youth.png"
+import { Footer } from "@/components/Footer"
 
 export interface PublicMentor {
     id: string
@@ -211,34 +209,7 @@ export function MentorsBrowser({ mentors }: { mentors: PublicMentor[] }) {
                 )}
             </div>
 
-            <footer className="bg-[#0D1F3C] text-white py-8 mt-8">
-                <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <img
-                            src={LOGO_URL}
-                            alt="Global Youth Emerge"
-                            className="h-8 w-auto brightness-0 invert"
-                        />
-                        <span
-                            className="text-[#6B84A3] text-sm"
-                        >
-                            © 2025 Global Youth Emerge ·
-                            mentorship.globalyouthemerge.org
-                        </span>
-                    </div>
-                    <div className="flex gap-5">
-                        {["Privacy", "Terms", "Contact"].map((l) => (
-                            <a
-                                key={l}
-                                href="#"
-                                className="text-[#6B84A3] text-xs hover:text-white transition-colors"
-                            >
-                                {l}
-                            </a>
-                        ))}
-                    </div>
-                </div>
-            </footer>
+            <Footer className="mt-8" />
         </div>
     )
 }

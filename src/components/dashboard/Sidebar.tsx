@@ -43,11 +43,6 @@ function buildMainNav(
     }
 
     items.push(
-        {
-            label: "AI Matchmaking",
-            href: "/ai-matchmaking",
-            icon: SparkleIcon,
-        },
         { label: "Sessions", href: "/sessions", icon: CalendarIcon },
         {
             label: "Chats",

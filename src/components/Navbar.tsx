@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { useSession } from "next-auth/react"
+import { usePathname } from "next/navigation"
 import { Menubar, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar"
 
 const LOGO_URL =
@@ -11,7 +12,7 @@ const LOGO_URL =
 const NAV_LINKS = [
     { label: "Home", href: "/#home" },
     { label: "Our Mentors", href: "/our-mentors" },
-    { label: "How It Works", href: "/#how-it-works" },
+    { label: "How It Works", href: "/how-it-works" },
     // { label: "Impact", href: "/#impact" },
     // { label: "Stories", href: "/#stories" },
     { label: "Join Us", href: "/get-started" },
@@ -34,6 +35,7 @@ export function Navbar({
     const showMentorFilters = onSearchChange !== undefined
     const { status } = useSession()
     const isSignedIn = status === "authenticated"
+    const pathname = usePathname()
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-white backdrop-blur-md border-b border-[#E2EAF4]">
@@ -56,7 +58,7 @@ export function Navbar({
                                 <MenubarTrigger
                                     nativeButton={false}
                                     render={<Link href={link.href} />}
-                                    className="rounded-lg px-2 py-1.5 text-xs font-bold text-[#4A6080] uppercase whitespace-nowrap transition-colors hover:bg-transparent hover:text-[#1B4B8A] aria-expanded:bg-transparent"
+                                    className={`rounded-none px-2 py-1.5 text-xs font-bold uppercase whitespace-nowrap border-b-2 transition-colors hover:bg-transparent hover:text-[#1B4B8A] aria-expanded:bg-transparent ${pathname === link.href ? "border-[#E07830] text-[#0D2B5E]" : "border-transparent text-[#4A6080]"}`}
                                 >
                                     {link.label}
                                 </MenubarTrigger>

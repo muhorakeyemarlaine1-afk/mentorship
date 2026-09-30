@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { escalateConversation } from "@/lib/conversations"
 
 export async function startConversationAction() {
     const session = await auth()
@@ -83,49 +84,7 @@ export async function requestEscalationAction(conversationId: string) {
         return { success: true }
     }
 
-    const mentee = await prisma.user.findUnique({
-        where: { id: session.user.id },
-    })
-    const menteeName = mentee?.name ?? mentee?.email ?? "A mentee"
-
-    const match = await prisma.mentorMatch.findFirst({
-        where: { menteeId: session.user.id, status: "ACCEPTED" },
-    })
-
-    if (match) {
-        await prisma.conversation.update({
-            where: { id: conversationId },
-            data: {
-                status: "ESCALATED",
-                escalatedAt: new Date(),
-                mentorId: match.mentorId,
-            },
-        })
-        await prisma.notification.create({
-            data: {
-                userId: match.mentorId,
-                title: "Mentee requested help",
-                message: `${menteeName} escalated a chat to you.`,
-            },
-        })
-    } else {
-        await prisma.conversation.update({
-            where: { id: conversationId },
-            data: { status: "ESCALATED", escalatedAt: new Date() },
-        })
-
-        const mentors = await prisma.user.findMany({
-            where: { role: "MENTOR" },
-            select: { id: true },
-        })
-        await prisma.notification.createMany({
-            data: mentors.map((mentor) => ({
-                userId: mentor.id,
-                title: "Open mentee chat request",
-                message: `${menteeName} is requesting a mentor.`,
-            })),
-        })
-    }
+    await escalateConversation(conversationId)
 
     revalidatePath("/chats")
     return { success: true }

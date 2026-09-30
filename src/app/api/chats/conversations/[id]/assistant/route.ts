@@ -2,10 +2,20 @@ import { revalidatePath } from "next/cache"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { escalateConversation } from "@/lib/conversations"
 import {
     streamAssistantReply,
+    suggestConversationTitle,
+    wantsHumanMentor,
     type AssistantHistoryMessage,
 } from "@/lib/ai/assistant"
+
+const HANDOFF_REPLY =
+    "No problem — I've asked a mentor to join this chat. They'll pick up right here, and you'll see their replies in this conversation."
+
+async function* staticReply(text: string) {
+    yield text
+}
 
 export async function POST(
     req: Request,
@@ -71,20 +81,39 @@ export async function POST(
         { role: "user", content },
     ]
 
+    // Name the chat from its opening message so it's findable in the history.
+    const titlePromise = conversation.title
+        ? null
+        : suggestConversationTitle(history)
+            .then((title) =>
+                prisma.conversation.update({
+                    where: { id: conversationId },
+                    data: { title },
+                })
+            )
+            .catch(() => null)
+
+    const handOff = wantsHumanMentor(content)
+    if (handOff) {
+        await titlePromise
+        await escalateConversation(conversationId)
+    }
+
     const encoder = new TextEncoder()
     let full = ""
 
     const stream = new ReadableStream<Uint8Array>({
         async start(controller) {
             try {
-                for await (const chunk of streamAssistantReply(
-                    history,
-                    req.signal
-                )) {
+                const reply = handOff
+                    ? staticReply(HANDOFF_REPLY)
+                    : streamAssistantReply(history, req.signal)
+                for await (const chunk of reply) {
                     full += chunk
                     controller.enqueue(encoder.encode(chunk))
                 }
             } finally {
+                await titlePromise
                 if (full.trim()) {
                     await prisma.conversationMessage.create({
                         data: {
@@ -97,8 +126,8 @@ export async function POST(
                         where: { id: conversationId },
                         data: { updatedAt: new Date() },
                     })
-                    revalidatePath("/chats")
                 }
+                revalidatePath("/chats")
                 controller.close()
             }
         },

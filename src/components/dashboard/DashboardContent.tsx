@@ -105,7 +105,6 @@ export function DashboardContent({
         { label: "Add Mentor", href: "/mentors", icon: UserIcon, bg: "#EFEAFF", color: "#6C4FE0" },
         { label: "Add Mentee", href: "/mentees", icon: UsersIcon, bg: "#E6F7EE", color: "#1BA766" },
         { label: "Create Program", href: "/programs/new", icon: BookOpenIcon, bg: "#FFEEE1", color: "#E0793F" },
-        { label: "AI Matchmaking", href: "/ai-matchmaking", icon: SparkleIcon, bg: "#E7F0FF", color: "#3167E0" },
         { label: "Manage Settings", href: "/settings", icon: SettingsIcon, bg: "#F1F0FA", color: "#6B6690" },
         { label: "View Reports", href: "/reports", icon: BarChartIcon, bg: "#F3EAFF", color: "#9B4FE0" },
     ]
@@ -282,11 +281,11 @@ export function DashboardContent({
                     </p>
 
                     <Link
-                        href="/ai-matchmaking"
+                        href="/mentees"
                         className="flex items-center justify-center gap-1.5 w-full bg-[#EFEAFF] text-[#6C4FE0] text-sm font-semibold py-2.5 rounded-full hover:bg-[#E4DBFF] transition-colors"
                     >
-                        <SparkleIcon className="w-4 h-4" />
-                        View AI Insights
+                        <UsersIcon className="w-4 h-4" />
+                        View Mentees
                     </Link>
                 </div>
 

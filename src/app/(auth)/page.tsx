@@ -4,10 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Navbar } from "@/components/Navbar"
+import { Footer } from "@/components/Footer"
 import { GetStartedForm } from "@/components/auth/GetStartedForm"
-
-const LOGO_URL =
-    "https://globalyouthemerge.org/wp-content/uploads/2025/05/Logo-global-youth.png"
 
 const CATEGORIES = [
     {
@@ -1148,31 +1146,7 @@ export default function App() {
             </section>
 
             {/* ── FOOTER ───────────────────────────────────────────────── */}
-            <footer className="bg-[#0D1F3C] text-white py-16">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-                        <p
-                            className="text-[#6B84A3] text-sm"
-                        >
-                            © 2025 Global Youth Emerge ·
-                            mentorship.globalyouthemerge.org
-                        </p>
-                        <div className="flex items-center gap-5">
-                            {["Privacy Policy", "Terms of Use", "Cookies"].map(
-                                (link) => (
-                                    <a
-                                        key={link}
-                                        href="#"
-                                        className="text-[#6B84A3] text-xs hover:text-white transition-colors"
-                                    >
-                                        {link}
-                                    </a>
-                                ),
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </footer>
+            <Footer />
         </div>
     )
 }

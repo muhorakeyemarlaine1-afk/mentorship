@@ -2,9 +2,8 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useRef, useState, useTransition } from "react"
+import { useEffect, useRef, useState, useTransition } from "react"
 
-import { sendMessageAction } from "@/actions/messages"
 import {
     postHumanMessageAction,
     claimConversationAction,
@@ -12,33 +11,18 @@ import {
     startConversationAction,
 } from "@/actions/conversations"
 import {
-    ArrowUpRightIcon,
+    HistoryIcon,
     PlusIcon,
     SearchIcon,
     SendIcon,
     SparkleIcon,
+    UserIcon,
+    XIcon,
 } from "@/components/dashboard/icons"
-
-export interface ChatPerson {
-    id: string
-    name: string
-    email: string
-    role: "MENTOR" | "MENTEE"
-    preview: string | null
-    time: string | null
-    unread: number
-}
-
-export interface ChatMessage {
-    id: string
-    fromMe: boolean
-    text: string
-    time: string
-}
 
 export interface ConversationSummary {
     id: string
-    menteeId: string
+    title: string | null
     menteeName: string
     mentorId: string | null
     mentorName: string | null
@@ -55,107 +39,117 @@ export interface ConversationMessageView {
     time: string
 }
 
-const ROLE_STYLES: Record<ChatPerson["role"], string> = {
-    MENTOR: "bg-[#EFEAFF] text-[#6C4FE0]",
-    MENTEE: "bg-[#E6F7EE] text-[#1BA766]",
+type Role = "ADMIN" | "MENTOR" | "MENTEE"
+
+const SUGGESTIONS = [
+    "Help me set goals for this quarter",
+    "How do I prepare for my next mentorship session?",
+    "I'd like advice on growing my career",
+]
+
+function conversationTitle(c: ConversationSummary) {
+    return c.title ?? "New chat"
 }
 
-function conversationTitle(
-    c: ConversationSummary,
-    viewerRole: "ADMIN" | "MENTOR" | "MENTEE"
-) {
-    if (viewerRole === "MENTOR") return c.menteeName
-    if (c.status === "AI_ONLY") return "AI Assistant"
-    if (c.mentorId) return c.mentorName ?? "Mentor"
-    return "Mentor request"
+function conversationStatusLabel(c: ConversationSummary, viewerRole: Role) {
+    if (viewerRole === "MENTOR") {
+        return c.isOpenQueueItem
+            ? `${c.menteeName} · needs a mentor`
+            : c.menteeName
+    }
+    if (c.status === "AI_ONLY") return "AI assistant"
+    if (c.mentorId) return `With ${c.mentorName ?? "your mentor"}`
+    return "Waiting for a mentor"
 }
 
-function conversationStatusLabel(
-    c: ConversationSummary,
-    viewerRole: "ADMIN" | "MENTOR" | "MENTEE"
-) {
-    if (c.status === "AI_ONLY") return "AI chat"
-    if (c.mentorId) return viewerRole === "MENTOR" ? "Claimed" : `With ${c.mentorName}`
-    return viewerRole === "MENTOR" ? "Open" : "Waiting for mentor"
+function authorLabel(m: ConversationMessageView, c: ConversationSummary) {
+    if (m.author === "ASSISTANT") return "AI Assistant"
+    if (m.mine) return "You"
+    if (m.author === "MENTOR") return c.mentorName ?? "Mentor"
+    return c.menteeName
 }
 
 export function ChatsPanel({
-    people,
-    activePerson,
-    messages,
     conversations,
     activeConversation,
     conversationMessages,
     currentUserId,
     currentUserRole,
 }: {
-    people: ChatPerson[]
-    activePerson: ChatPerson | null
-    messages: ChatMessage[]
     conversations: ConversationSummary[]
     activeConversation: ConversationSummary | null
     conversationMessages: ConversationMessageView[]
     currentUserId: string
-    currentUserRole: "ADMIN" | "MENTOR" | "MENTEE"
+    currentUserRole: Role
 }) {
     const router = useRouter()
+    const [historyOpen, setHistoryOpen] = useState(false)
     const [search, setSearch] = useState("")
     const [draft, setDraft] = useState("")
+    const [error, setError] = useState<string | null>(null)
     const [isPending, startTransition] = useTransition()
+    const [pendingText, setPendingText] = useState<string | null>(null)
     const [streamingText, setStreamingText] = useState("")
     const [isStreaming, setIsStreaming] = useState(false)
-    const formRef = useRef<HTMLFormElement>(null)
+    const bottomRef = useRef<HTMLDivElement>(null)
 
-    const filtered = people.filter((p) =>
-        p.name.toLowerCase().includes(search.toLowerCase())
+    const isMentee = currentUserRole === "MENTEE"
+
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ block: "end" })
+    }, [conversationMessages.length, pendingText, streamingText])
+
+    useEffect(() => {
+        if (!historyOpen) return
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setHistoryOpen(false)
+        }
+        window.addEventListener("keydown", onKeyDown)
+        return () => window.removeEventListener("keydown", onKeyDown)
+    }, [historyOpen])
+
+    const query = search.trim().toLowerCase()
+    const filtered = conversations.filter(
+        (c) =>
+            !query ||
+            conversationTitle(c).toLowerCase().includes(query) ||
+            c.menteeName.toLowerCase().includes(query)
     )
+    const openRequests = filtered.filter((c) => c.isOpenQueueItem)
+    const ownChats = filtered.filter((c) => !c.isOpenQueueItem)
 
-    function handleSendPerson(e: React.FormEvent) {
-        e.preventDefault()
-        if (!activePerson || !draft.trim()) return
-        const content = draft
-        setDraft("")
-        startTransition(async () => {
-            await sendMessageAction(activePerson.id, content)
-        })
-    }
+    // Mentees always talk to the AI unless the chat was handed to a mentor;
+    // a brand new chat (no conversation yet) is created on first send.
+    const talkingToAi =
+        isMentee && (!activeConversation || activeConversation.status === "AI_ONLY")
 
-    function handleNewAiChat() {
-        startTransition(async () => {
-            const result = await startConversationAction()
-            if (result.success) {
-                router.push(`/chats?conversation=${result.conversationId}`)
-            }
-        })
-    }
+    const canCompose =
+        isMentee ||
+        (currentUserRole === "MENTOR" &&
+            activeConversation?.mentorId === currentUserId)
 
-    function handleRequestMentor() {
-        if (!activeConversation) return
-        startTransition(async () => {
-            await requestEscalationAction(activeConversation.id)
-            router.refresh()
-        })
-    }
+    const canClaim =
+        currentUserRole === "MENTOR" && !!activeConversation?.isOpenQueueItem
 
-    function handleClaim() {
-        if (!activeConversation) return
-        startTransition(async () => {
-            await claimConversationAction(activeConversation.id)
-            router.refresh()
-        })
-    }
-
-    async function handleSendAi(e: React.FormEvent) {
-        e.preventDefault()
-        if (!activeConversation || !draft.trim() || isStreaming) return
-        const content = draft
-        setDraft("")
+    async function sendToAi(content: string) {
         setIsStreaming(true)
+        setPendingText(content)
         setStreamingText("")
 
+        let conversationId = activeConversation?.id
         try {
+            if (!conversationId) {
+                const result = await startConversationAction()
+                if (!result.success) {
+                    setError(result.error ?? "Couldn't start a chat.")
+                    setDraft(content)
+                    return
+                }
+                conversationId = result.conversationId
+            }
+
             const res = await fetch(
-                `/api/chats/conversations/${activeConversation.id}/assistant`,
+                `/api/chats/conversations/${conversationId}/assistant`,
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -163,8 +157,8 @@ export function ChatsPanel({
                 }
             )
             if (!res.ok || !res.body) {
-                setIsStreaming(false)
-                setStreamingText("")
+                const body = await res.json().catch(() => null)
+                setError(body?.error ?? "The assistant couldn't reply.")
                 return
             }
             const reader = res.body.getReader()
@@ -177,189 +171,151 @@ export function ChatsPanel({
                 setStreamingText(acc)
             }
         } finally {
-            setIsStreaming(false)
-            setStreamingText("")
-            router.refresh()
+            if (conversationId && conversationId !== activeConversation?.id) {
+                router.replace(`/chats?conversation=${conversationId}`)
+            } else {
+                setIsStreaming(false)
+                setPendingText(null)
+                setStreamingText("")
+                router.refresh()
+            }
         }
     }
 
-    function handleSendHuman(e: React.FormEvent) {
+    function handleSend(e: React.FormEvent) {
         e.preventDefault()
-        if (!activeConversation || !draft.trim()) return
-        const content = draft
+        const content = draft.trim()
+        if (!content || isStreaming || isPending) return
         setDraft("")
+        setError(null)
+
+        if (talkingToAi) {
+            void sendToAi(content)
+            return
+        }
+        if (!activeConversation) return
+        setPendingText(content)
         startTransition(async () => {
-            await postHumanMessageAction(activeConversation.id, content)
+            const result = await postHumanMessageAction(
+                activeConversation.id,
+                content
+            )
+            if (result.error) {
+                setError(result.error)
+                setDraft(content)
+            }
+            setPendingText(null)
         })
     }
 
-    const canClaim =
-        currentUserRole === "MENTOR" &&
-        !!activeConversation?.isOpenQueueItem
+    function handleRequestMentor() {
+        if (!activeConversation) return
+        startTransition(async () => {
+            const result = await requestEscalationAction(activeConversation.id)
+            if (result.error) setError(result.error)
+            router.refresh()
+        })
+    }
 
-    const showComposerForConversation =
-        !!activeConversation &&
-        (activeConversation.status === "AI_ONLY" ||
-            (currentUserRole === "MENTEE" && activeConversation.status === "ESCALATED") ||
-            (currentUserRole === "MENTOR" && activeConversation.mentorId === currentUserId))
+    function handleClaim() {
+        if (!activeConversation) return
+        startTransition(async () => {
+            const result = await claimConversationAction(activeConversation.id)
+            if (result.error) setError(result.error)
+            router.refresh()
+        })
+    }
 
-    return (
-        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-4 px-8 pb-6">
-            <div className="bg-white rounded-2xl border border-[#EDEBF6] flex flex-col min-h-0 overflow-y-auto">
-                {(currentUserRole === "MENTEE" || conversations.length > 0) && (
-                    <div className="p-3 border-b border-[#EDEBF6] shrink-0">
-                        <div className="flex items-center justify-between px-1 mb-2">
-                            <p className="text-[11px] font-bold text-[#9C97BE] uppercase tracking-wide">
-                                Assistant &amp; Mentor Chats
-                            </p>
-                        </div>
-
-                        {currentUserRole === "MENTEE" && (
-                            <button
-                                type="button"
-                                onClick={handleNewAiChat}
-                                disabled={isPending}
-                                className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#6C4FE0] text-white text-sm font-semibold hover:bg-[#5B3FD6] transition-colors disabled:opacity-60 mb-1"
-                            >
-                                <PlusIcon className="w-4 h-4" />
-                                New chat with AI
-                            </button>
-                        )}
-
-                        {conversations.map((c) => (
-                            <Link
-                                key={c.id}
-                                href={`/chats?conversation=${c.id}`}
-                                className={`w-full flex items-start gap-3 px-3 py-3 rounded-xl text-left transition-colors ${
-                                    activeConversation?.id === c.id
-                                        ? "bg-[#F3EFFF]"
-                                        : "hover:bg-[#F6F7FB]"
-                                }`}
-                            >
-                                <div className="w-10 h-10 rounded-full bg-[#FEF4EC] text-[#E07830] flex items-center justify-center shrink-0">
-                                    <SparkleIcon className="w-4 h-4" />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <div className="flex items-center justify-between gap-2 mb-0.5">
-                                        <p className="text-sm font-semibold text-[#171139] truncate">
-                                            {conversationTitle(c, currentUserRole)}
-                                        </p>
-                                        <span className="text-[11px] text-[#9C97BE] shrink-0">
-                                            {c.time}
-                                        </span>
-                                    </div>
-                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#F1F0FA] text-[#6B6690]">
-                                        {conversationStatusLabel(c, currentUserRole)}
-                                    </span>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                )}
-
-                <div className="p-3 shrink-0">
-                    <div className="relative">
-                        <SearchIcon className="w-4 h-4 text-[#9C97BE] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search people..."
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#EDEBF6] bg-[#F6F7FB] text-sm text-[#171139] placeholder-[#9C97BE] focus:outline-none focus:border-[#6C4FE0]"
-                        />
-                    </div>
-                </div>
-
-                <div className="flex-1 px-2 pb-2">
-                    {filtered.length === 0 ? (
-                        <p className="text-center text-xs text-[#9C97BE] px-4 py-8">
-                            No mentors or mentees yet.
-                        </p>
+    function renderConversationLink(c: ConversationSummary) {
+        const active = activeConversation?.id === c.id
+        return (
+            <Link
+                key={c.id}
+                href={`/chats?conversation=${c.id}`}
+                onClick={() => setHistoryOpen(false)}
+                aria-current={active ? "page" : undefined}
+                className={`flex items-start gap-3 px-3 py-2.5 rounded-xl transition-colors ${
+                    active ? "bg-[#F3EFFF]" : "hover:bg-[#F6F7FB]"
+                }`}
+            >
+                <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                        c.status === "AI_ONLY"
+                            ? "bg-[#FEF4EC] text-[#E07830]"
+                            : "bg-[#EFEAFF] text-[#6C4FE0]"
+                    }`}
+                >
+                    {c.status === "AI_ONLY" ? (
+                        <SparkleIcon className="w-3.5 h-3.5" />
                     ) : (
-                        filtered.map((p) => (
-                            <Link
-                                key={p.id}
-                                href={`/chats?with=${p.id}`}
-                                className={`w-full flex items-start gap-3 px-3 py-3 rounded-xl text-left transition-colors ${
-                                    activePerson?.id === p.id
-                                        ? "bg-[#F3EFFF]"
-                                        : "hover:bg-[#F6F7FB]"
-                                }`}
-                            >
-                                <div className="w-10 h-10 rounded-full bg-[#EFEAFF] text-[#6C4FE0] flex items-center justify-center font-bold text-sm shrink-0">
-                                    {p.name[0]?.toUpperCase()}
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <div className="flex items-center justify-between gap-2 mb-0.5">
-                                        <div className="flex items-center gap-1.5 min-w-0">
-                                            <p className="text-sm font-semibold text-[#171139] truncate">
-                                                {p.name}
-                                            </p>
-                                            <span
-                                                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${ROLE_STYLES[p.role]}`}
-                                            >
-                                                {p.role}
-                                            </span>
-                                        </div>
-                                        {p.time && (
-                                            <span className="text-[11px] text-[#9C97BE] shrink-0">
-                                                {p.time}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center justify-between gap-2">
-                                        <p className="text-xs text-[#6B6690] truncate">
-                                            {p.preview ?? "No messages yet"}
-                                        </p>
-                                        {p.unread > 0 && (
-                                            <span className="bg-[#6C4FE0] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0">
-                                                {p.unread}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </Link>
-                        ))
+                        <UserIcon className="w-3.5 h-3.5" />
                     )}
                 </div>
-            </div>
+                <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-2">
+                        <p className="text-sm font-semibold text-[#171139] truncate">
+                            {conversationTitle(c)}
+                        </p>
+                        <span className="text-[11px] text-[#9C97BE] shrink-0">
+                            {c.time}
+                        </span>
+                    </div>
+                    <p className="text-xs text-[#6B6690] truncate">
+                        {conversationStatusLabel(c, currentUserRole)}
+                    </p>
+                </div>
+            </Link>
+        )
+    }
 
-            <div className="bg-white rounded-2xl border border-[#EDEBF6] flex flex-col min-h-0">
-                {activeConversation ? (
-                    <>
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-[#EDEBF6] shrink-0">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-[#FEF4EC] text-[#E07830] flex items-center justify-center shrink-0">
-                                    <SparkleIcon className="w-4 h-4" />
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <p className="text-sm font-bold text-[#171139]">
-                                            {conversationTitle(
-                                                activeConversation,
-                                                currentUserRole
-                                            )}
-                                        </p>
-                                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#F1F0FA] text-[#6B6690]">
-                                            {conversationStatusLabel(
-                                                activeConversation,
-                                                currentUserRole
-                                            )}
-                                        </span>
-                                    </div>
-                                </div>
+    const showMessages =
+        conversationMessages.length > 0 || pendingText !== null
+
+    return (
+        <div className="flex-1 min-h-0 px-4 sm:px-8 pb-6">
+            <div className="relative h-full flex gap-4 overflow-hidden rounded-2xl lg:overflow-visible lg:rounded-none">
+                {/* Chat */}
+                <section className="flex-1 min-w-0 bg-white rounded-2xl border border-[#EDEBF6] flex flex-col min-h-0">
+                    <header className="flex items-center justify-between gap-3 px-4 sm:px-5 py-4 border-b border-[#EDEBF6] shrink-0">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-full bg-[#FEF4EC] text-[#E07830] flex items-center justify-center shrink-0">
+                                <SparkleIcon className="w-4 h-4" />
                             </div>
+                            <div className="min-w-0">
+                                <p className="text-sm font-bold text-[#171139] truncate">
+                                    {activeConversation
+                                        ? conversationTitle(activeConversation)
+                                        : isMentee
+                                          ? "New chat"
+                                          : "Chats"}
+                                </p>
+                                <p className="text-xs text-[#6B6690] truncate">
+                                    {activeConversation
+                                        ? conversationStatusLabel(
+                                              activeConversation,
+                                              currentUserRole
+                                          )
+                                        : isMentee
+                                          ? "AI assistant"
+                                          : "Select a chat from the history"}
+                                </p>
+                            </div>
+                        </div>
 
-                            {currentUserRole === "MENTEE" &&
-                                activeConversation.status === "AI_ONLY" && (
+                        <div className="flex items-center gap-2 shrink-0">
+                            {isMentee &&
+                                activeConversation?.status === "AI_ONLY" && (
                                     <button
                                         type="button"
                                         onClick={handleRequestMentor}
-                                        disabled={isPending}
-                                        className="flex items-center gap-1.5 text-xs font-semibold text-[#6C4FE0] hover:text-[#5B3FD6] transition-colors disabled:opacity-60"
+                                        disabled={isPending || isStreaming}
+                                        className="flex items-center gap-1.5 text-xs font-semibold text-[#6C4FE0] border border-[#E4DBFF] px-3 py-1.5 rounded-full hover:bg-[#F3EFFF] transition-colors disabled:opacity-60"
                                     >
-                                        <ArrowUpRightIcon className="w-3.5 h-3.5" />
-                                        Request a mentor
+                                        <UserIcon className="w-3.5 h-3.5" />
+                                        <span className="hidden sm:inline">
+                                            Talk to a mentor
+                                        </span>
+                                        <span className="sm:hidden">Mentor</span>
                                     </button>
                                 )}
 
@@ -368,175 +324,246 @@ export function ChatsPanel({
                                     type="button"
                                     onClick={handleClaim}
                                     disabled={isPending}
-                                    className="flex items-center gap-1.5 text-xs font-semibold bg-[#6C4FE0] text-white px-3 py-1.5 rounded-full hover:bg-[#5B3FD6] transition-colors disabled:opacity-60"
+                                    className="text-xs font-semibold bg-[#6C4FE0] text-white px-3 py-1.5 rounded-full hover:bg-[#5B3FD6] transition-colors disabled:opacity-60"
                                 >
                                     Claim this chat
                                 </button>
                             )}
-                        </div>
 
-                        <div className="flex-1 overflow-y-auto px-6 py-5">
-                            {conversationMessages.length === 0 && !isStreaming ? (
-                                <p className="text-center text-xs text-[#9C97BE]">
-                                    Say hello to get started 👋
-                                </p>
-                            ) : (
-                                <div className="flex flex-col gap-4">
-                                    {conversationMessages.map((m) => (
+                            <button
+                                type="button"
+                                onClick={() => setHistoryOpen(true)}
+                                aria-label="Open chat history"
+                                aria-expanded={historyOpen}
+                                aria-controls="chat-history"
+                                className="lg:hidden w-9 h-9 rounded-full border border-[#EDEBF6] flex items-center justify-center text-[#6B6690] hover:bg-[#F6F7FB] transition-colors"
+                            >
+                                <HistoryIcon className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </header>
+
+                    <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5">
+                        {showMessages ? (
+                            <div className="flex flex-col gap-4">
+                                {conversationMessages.map((m) => (
+                                    <div
+                                        key={m.id}
+                                        className={`flex flex-col ${
+                                            m.mine ? "items-end" : "items-start"
+                                        }`}
+                                    >
+                                        <span className="text-[11px] text-[#9C97BE] mb-1">
+                                            {activeConversation
+                                                ? authorLabel(m, activeConversation)
+                                                : ""}{" "}
+                                            · {m.time}
+                                        </span>
                                         <div
-                                            key={m.id}
-                                            className={`flex flex-col ${
-                                                m.author !== "ASSISTANT" && m.mine
-                                                    ? "items-end"
-                                                    : "items-start"
+                                            className={`max-w-[85%] sm:max-w-md px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap break-words ${
+                                                m.author === "ASSISTANT"
+                                                    ? "bg-[#FEF4EC] text-[#171139] rounded-bl-sm"
+                                                    : m.mine
+                                                      ? "bg-[#6C4FE0] text-white rounded-br-sm"
+                                                      : "bg-[#F6F7FB] text-[#171139] rounded-bl-sm"
                                             }`}
                                         >
-                                            <span className="text-[11px] text-[#9C97BE] mb-1">
-                                                {m.time}
-                                            </span>
-                                            <div
-                                                className={`max-w-md px-4 py-2.5 rounded-2xl text-sm ${
-                                                    m.author === "ASSISTANT"
-                                                        ? "bg-[#FEF4EC] text-[#171139] rounded-bl-sm"
-                                                        : m.mine
-                                                          ? "bg-[#6C4FE0] text-white rounded-br-sm"
-                                                          : "bg-[#F6F7FB] text-[#171139] rounded-bl-sm"
-                                                }`}
-                                            >
-                                                {m.text}
-                                            </div>
+                                            {m.text}
                                         </div>
-                                    ))}
-                                    {isStreaming && (
-                                        <div className="flex flex-col items-start">
-                                            <div className="max-w-md px-4 py-2.5 rounded-2xl text-sm bg-[#FEF4EC] text-[#171139] rounded-bl-sm">
-                                                {streamingText || "…"}
-                                            </div>
+                                    </div>
+                                ))}
+                                {pendingText !== null && (
+                                    <div className="flex flex-col items-end">
+                                        <div className="max-w-[85%] sm:max-w-md px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap break-words bg-[#6C4FE0] text-white rounded-br-sm opacity-80">
+                                            {pendingText}
                                         </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-
-                        {activeConversation.status === "ESCALATED" &&
-                            !activeConversation.mentorId &&
-                            currentUserRole === "MENTEE" && (
-                                <p className="px-5 py-2 text-xs text-[#9C97BE] border-t border-[#EDEBF6]">
-                                    Waiting for a mentor to join…
-                                </p>
-                            )}
-
-                        {showComposerForConversation && (
-                            <form
-                                onSubmit={
-                                    activeConversation.status === "AI_ONLY"
-                                        ? handleSendAi
-                                        : handleSendHuman
-                                }
-                                className="flex items-center gap-3 px-5 py-4 border-t border-[#EDEBF6] shrink-0"
-                            >
-                                <input
-                                    type="text"
-                                    value={draft}
-                                    onChange={(e) => setDraft(e.target.value)}
-                                    placeholder="Type a message..."
-                                    disabled={isStreaming}
-                                    className="flex-1 text-sm text-[#171139] placeholder-[#9C97BE] focus:outline-none disabled:opacity-60"
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={isPending || isStreaming || !draft.trim()}
-                                    className="w-9 h-9 rounded-full bg-[#6C4FE0] flex items-center justify-center text-white hover:bg-[#5B3FD6] transition-colors shrink-0 disabled:opacity-60"
-                                >
-                                    <SendIcon className="w-4 h-4" />
-                                </button>
-                            </form>
-                        )}
-                    </>
-                ) : !activePerson ? (
-                    <div className="flex-1 flex flex-col items-center justify-center text-center px-6 gap-2">
-                        <SparkleIcon className="w-6 h-6 text-[#9C97BE]" />
-                        <p className="text-sm text-[#6B6690]">
-                            Select a chat, or start a new one, to get going.
-                        </p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-[#EDEBF6] shrink-0">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-[#EFEAFF] text-[#6C4FE0] flex items-center justify-center font-bold text-sm">
-                                    {activePerson.name[0]?.toUpperCase()}
+                                    </div>
+                                )}
+                                {isStreaming && (
+                                    <div className="flex flex-col items-start">
+                                        <span className="text-[11px] text-[#9C97BE] mb-1">
+                                            AI Assistant
+                                        </span>
+                                        <div className="max-w-[85%] sm:max-w-md px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap break-words bg-[#FEF4EC] text-[#171139] rounded-bl-sm">
+                                            {streamingText || "…"}
+                                        </div>
+                                    </div>
+                                )}
+                                <div ref={bottomRef} />
+                            </div>
+                        ) : isMentee ? (
+                            <div className="h-full flex flex-col items-center justify-center text-center gap-4 max-w-md mx-auto">
+                                <div className="w-12 h-12 rounded-full bg-[#FEF4EC] text-[#E07830] flex items-center justify-center">
+                                    <SparkleIcon className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <div className="flex items-center gap-2">
-                                        <p className="text-sm font-bold text-[#171139]">
-                                            {activePerson.name}
-                                        </p>
-                                        <span
-                                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${ROLE_STYLES[activePerson.role]}`}
-                                        >
-                                            {activePerson.role}
-                                        </span>
-                                    </div>
-                                    <p className="text-xs text-[#6B6690]">
-                                        {activePerson.email}
+                                    <p className="text-base font-bold text-[#171139]">
+                                        How can I help today?
+                                    </p>
+                                    <p className="text-sm text-[#6B6690] mt-1">
+                                        You&apos;re chatting with the AI
+                                        assistant. Ask for a human mentor
+                                        at any time and one will join this
+                                        chat.
                                     </p>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto px-6 py-5">
-                            {messages.length === 0 ? (
-                                <p className="text-center text-xs text-[#9C97BE]">
-                                    No messages yet. Say hello 👋
-                                </p>
-                            ) : (
-                                <div className="flex flex-col gap-4">
-                                    {messages.map((m) => (
-                                        <div
-                                            key={m.id}
-                                            className={`flex flex-col ${m.fromMe ? "items-end" : "items-start"}`}
-                                        >
-                                            <span className="text-[11px] text-[#9C97BE] mb-1">
-                                                {m.time}
-                                            </span>
-                                            <div
-                                                className={`max-w-md px-4 py-2.5 rounded-2xl text-sm ${
-                                                    m.fromMe
-                                                        ? "bg-[#6C4FE0] text-white rounded-br-sm"
-                                                        : "bg-[#F6F7FB] text-[#171139] rounded-bl-sm"
-                                                }`}
+                                {!activeConversation && (
+                                    <div className="flex flex-wrap justify-center gap-2">
+                                        {SUGGESTIONS.map((s) => (
+                                            <button
+                                                key={s}
+                                                type="button"
+                                                onClick={() => setDraft(s)}
+                                                className="text-xs text-[#6C4FE0] bg-[#F3EFFF] px-3 py-1.5 rounded-full hover:bg-[#E4DBFF] transition-colors"
                                             >
-                                                {m.text}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                                                {s}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="h-full flex flex-col items-center justify-center text-center gap-2 px-6">
+                                <HistoryIcon className="w-6 h-6 text-[#9C97BE]" />
+                                <p className="text-sm text-[#6B6690]">
+                                    {currentUserRole === "MENTOR"
+                                        ? "Pick a mentee request or one of your chats from the history."
+                                        : "AI chats are available to mentees."}
+                                </p>
+                            </div>
+                        )}
+                    </div>
 
+                    {error && (
+                        <p className="px-5 py-2 text-xs text-[#D14343] border-t border-[#EDEBF6]">
+                            {error}
+                        </p>
+                    )}
+
+                    {isMentee &&
+                        activeConversation?.status === "ESCALATED" &&
+                        !activeConversation.mentorId && (
+                            <p className="px-5 py-2 text-xs text-[#9C97BE] border-t border-[#EDEBF6]">
+                                A mentor has been asked to join. You can keep
+                                adding details here in the meantime.
+                            </p>
+                        )}
+
+                    {canCompose && (
                         <form
-                            ref={formRef}
-                            onSubmit={handleSendPerson}
-                            className="flex items-center gap-3 px-5 py-4 border-t border-[#EDEBF6] shrink-0"
+                            onSubmit={handleSend}
+                            className="flex items-center gap-3 px-4 sm:px-5 py-4 border-t border-[#EDEBF6] shrink-0"
                         >
                             <input
                                 type="text"
                                 value={draft}
                                 onChange={(e) => setDraft(e.target.value)}
-                                placeholder="Type a message..."
-                                className="flex-1 text-sm text-[#171139] placeholder-[#9C97BE] focus:outline-none"
+                                placeholder={
+                                    talkingToAi
+                                        ? "Message the AI assistant..."
+                                        : "Type a message..."
+                                }
+                                disabled={isStreaming}
+                                className="flex-1 min-w-0 text-sm text-[#171139] placeholder-[#9C97BE] focus:outline-none disabled:opacity-60"
                             />
                             <button
                                 type="submit"
-                                disabled={isPending || !draft.trim()}
+                                aria-label="Send message"
+                                disabled={isPending || isStreaming || !draft.trim()}
                                 className="w-9 h-9 rounded-full bg-[#6C4FE0] flex items-center justify-center text-white hover:bg-[#5B3FD6] transition-colors shrink-0 disabled:opacity-60"
                             >
                                 <SendIcon className="w-4 h-4" />
                             </button>
                         </form>
-                    </>
+                    )}
+                </section>
+
+                {/* Mobile backdrop for the history drawer */}
+                {historyOpen && (
+                    <button
+                        type="button"
+                        aria-label="Close chat history"
+                        onClick={() => setHistoryOpen(false)}
+                        className="lg:hidden absolute inset-0 z-10 bg-[#171139]/20"
+                    />
                 )}
+
+                {/* History sidebar: static on the right on desktop, slide-in drawer on mobile */}
+                <aside
+                    id="chat-history"
+                    className={`absolute inset-y-0 right-0 z-20 w-full sm:w-80 lg:static lg:z-auto lg:w-80 lg:shrink-0 lg:translate-x-0 lg:visible bg-white rounded-2xl border border-[#EDEBF6] flex flex-col min-h-0 transition-[transform,visibility] duration-300 ease-out ${
+                        historyOpen
+                            ? "translate-x-0 visible"
+                            : "translate-x-full invisible"
+                    }`}
+                >
+                    <div className="p-3 border-b border-[#EDEBF6] shrink-0 flex flex-col gap-2">
+                        <div className="flex items-center justify-between px-1">
+                            <p className="text-[11px] font-bold text-[#9C97BE] uppercase tracking-wide">
+                                Chat history
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => setHistoryOpen(false)}
+                                aria-label="Close chat history"
+                                className="lg:hidden w-8 h-8 -mr-1 rounded-full flex items-center justify-center text-[#6B6690] hover:bg-[#F6F7FB]"
+                            >
+                                <XIcon className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {isMentee && (
+                            <Link
+                                href="/chats"
+                                onClick={() => setHistoryOpen(false)}
+                                className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#6C4FE0] text-white text-sm font-semibold hover:bg-[#5B3FD6] transition-colors"
+                            >
+                                <PlusIcon className="w-4 h-4" />
+                                New chat
+                            </Link>
+                        )}
+
+                        <div className="relative">
+                            <SearchIcon className="w-4 h-4 text-[#9C97BE] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Search chats..."
+                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#EDEBF6] bg-[#F6F7FB] text-sm text-[#171139] placeholder-[#9C97BE] focus:outline-none focus:border-[#6C4FE0]"
+                            />
+                        </div>
+                    </div>
+
+                    <nav className="flex-1 overflow-y-auto p-2 flex flex-col gap-0.5">
+                        {filtered.length === 0 ? (
+                            <p className="text-center text-xs text-[#9C97BE] px-4 py-8">
+                                {query
+                                    ? "No chats match your search."
+                                    : isMentee
+                                      ? "Your AI chats will appear here."
+                                      : "No mentee requests yet."}
+                            </p>
+                        ) : currentUserRole === "MENTOR" ? (
+                            <>
+                                {openRequests.length > 0 && (
+                                    <p className="px-3 pt-2 pb-1 text-[11px] font-bold text-[#9C97BE] uppercase tracking-wide">
+                                        Open requests
+                                    </p>
+                                )}
+                                {openRequests.map(renderConversationLink)}
+                                {ownChats.length > 0 && (
+                                    <p className="px-3 pt-3 pb-1 text-[11px] font-bold text-[#9C97BE] uppercase tracking-wide">
+                                        Your chats
+                                    </p>
+                                )}
+                                {ownChats.map(renderConversationLink)}
+                            </>
+                        ) : (
+                            filtered.map(renderConversationLink)
+                        )}
+                    </nav>
+                </aside>
             </div>
         </div>
     )
