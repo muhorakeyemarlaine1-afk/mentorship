@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 export default async function ProfilePage() {
     const session = await auth()
@@ -19,12 +20,10 @@ export default async function ProfilePage() {
 
     return (
         <div className="px-8 py-6 max-w-2xl">
-            <h1 className="text-2xl font-extrabold text-[#171139] mb-1">
-                Profile
-            </h1>
-            <p className="text-sm text-[#6B6690] mb-6">
-                Your account details.
-            </p>
+            <PageHeader
+                title={<>Profile</>}
+                description={<>Your account details.</>}
+            />
 
             <div className="bg-white rounded-2xl border border-[#EDEBF6] p-6">
                 <div className="flex items-center gap-4 mb-6">

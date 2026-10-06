@@ -13,6 +13,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { CreateMentorForm } from "@/components/dashboard/CreateMentorForm"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 export interface MentorListItem {
     id: string
@@ -32,22 +33,22 @@ export function MentorsList({ mentors }: { mentors: MentorListItem[] }) {
         return mentors.filter((mentor) =>
             [mentor.name, mentor.email, mentor.title]
                 .filter(Boolean)
-                .some((field) => field!.toLowerCase().includes(query))
+                .some((field) => field!.toLowerCase().includes(query)),
         )
     }, [mentors, search])
 
     return (
         <div>
-            <div className="flex items-start justify-between gap-6 flex-wrap mb-6">
-                <div>
-                    <h1 className="text-2xl font-extrabold text-[#171139]">
-                        Mentors
-                    </h1>
-                    <p className="text-sm text-[#6B6690] mt-1">
-                        {mentors.length} mentor
-                        {mentors.length === 1 ? "" : "s"} on the platform.
-                    </p>
-                </div>
+            <div className="flex items-start justify-end gap-6 flex-wrap mb-6">
+                <PageHeader
+                    title={<>Mentors</>}
+                    description={
+                        <>
+                            {mentors.length} mentor{" "}
+                            {mentors.length === 1 ? "" : "s"} on the platform.
+                        </>
+                    }
+                />
 
                 <div className="flex items-center gap-3">
                     <div className="relative">
@@ -151,7 +152,7 @@ export function MentorsList({ mentors }: { mentors: MentorListItem[] }) {
                                     </td>
                                     <td className="px-6 py-4 text-sm text-[#6B6690]">
                                         {new Date(
-                                            mentor.createdAt
+                                            mentor.createdAt,
                                         ).toLocaleDateString()}
                                     </td>
                                 </tr>

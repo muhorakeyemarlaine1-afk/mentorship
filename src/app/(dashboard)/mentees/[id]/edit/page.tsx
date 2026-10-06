@@ -5,14 +5,13 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { ChevronLeftIcon } from "@/components/dashboard/icons"
 import { EditMenteeForm } from "@/components/dashboard/EditMenteeForm"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 interface EditMenteePageProps {
     params: Promise<{ id: string }>
 }
 
-export default async function EditMenteePage({
-    params,
-}: EditMenteePageProps) {
+export default async function EditMenteePage({ params }: EditMenteePageProps) {
     const session = await auth()
     if (session?.user.role !== "ADMIN") {
         redirect("/dashboard")
@@ -37,12 +36,12 @@ export default async function EditMenteePage({
                 Back to Mentee
             </Link>
 
-            <h1 className="text-2xl font-extrabold text-[#171139] mb-1">
-                Edit Mentee
-            </h1>
-            <p className="text-sm text-[#6B6690] mb-6">
-                Update {mentee.name ?? mentee.email}&apos;s profile.
-            </p>
+            <PageHeader
+                title={<>Edit Mentee</>}
+                description={
+                    <>Update {mentee.name ?? mentee.email}&apos;s profile.</>
+                }
+            />
 
             <div className="bg-white rounded-2xl border border-[#EDEBF6] p-6">
                 <EditMenteeForm

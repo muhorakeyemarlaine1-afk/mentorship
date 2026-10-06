@@ -7,6 +7,7 @@ import {
     type ConversationMessageView,
     type ConversationSummary,
 } from "@/components/dashboard/ChatsPanel"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 interface ChatsPageProps {
     searchParams: Promise<{ conversation?: string }>
@@ -94,17 +95,17 @@ export default async function ChatsPage({ searchParams }: ChatsPageProps) {
     }
 
     return (
-        <div className="h-screen flex flex-col">
-            <div className="px-4 sm:px-8 py-6 shrink-0">
-                <h1 className="text-2xl font-extrabold text-[#171139]">
-                    Chats
-                </h1>
-                <p className="text-sm text-[#6B6690] mt-1">
-                    {currentUserRole === "MENTOR"
-                        ? "Pick up chats mentees have handed over from the AI assistant."
-                        : "Chat with the AI assistant, and bring in a mentor whenever you need one."}
-                </p>
-            </div>
+        <div className="h-[calc(100dvh-5rem)] flex flex-col">
+            <PageHeader
+                title={<>Chats</>}
+                description={
+                    <>
+                        {currentUserRole === "MENTOR"
+                            ? "Pick up chats mentees have handed over from the AI assistant."
+                            : "Chat with the AI assistant, and bring in a mentor whenever you need one."}
+                    </>
+                }
+            />
 
             <ChatsPanel
                 // Remount per conversation so drafts and streaming state reset.

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 export default async function BillingPage() {
     const session = await auth()
@@ -19,12 +20,10 @@ export default async function BillingPage() {
 
     return (
         <div className="px-8 py-6 max-w-3xl">
-            <h1 className="text-2xl font-extrabold text-[#171139] mb-1">
-                Billing &amp; Plans
-            </h1>
-            <p className="text-sm text-[#6B6690] mb-6">
-                Your current plan and platform usage.
-            </p>
+            <PageHeader
+                title={<>Billing &amp; Plans</>}
+                description={<>Your current plan and platform usage.</>}
+            />
 
             <div className="bg-white rounded-2xl border border-[#EDEBF6] p-6 mb-6">
                 <div className="flex items-center justify-between gap-4 flex-wrap mb-2">
@@ -36,9 +35,9 @@ export default async function BillingPage() {
                     </span>
                 </div>
                 <p className="text-sm text-[#6B6690]">
-                    Global Youth Emerge Mentorship is free for youth and
-                    mentors — there&apos;s no paid tier or billing configured
-                    for this platform.
+                    Global Youth Emerge Mentorship is free for youth and mentors
+                    — there&apos;s no paid tier or billing configured for this
+                    platform.
                 </p>
             </div>
 
@@ -55,17 +54,15 @@ export default async function BillingPage() {
                         <p className="text-2xl font-extrabold text-[#171139] mb-1">
                             {stat.value}
                         </p>
-                        <p className="text-xs text-[#6B6690]">
-                            {stat.label}
-                        </p>
+                        <p className="text-xs text-[#6B6690]">{stat.label}</p>
                     </div>
                 ))}
             </div>
 
             <p className="text-xs text-[#9C97BE] mt-6">
                 {totalSeats} total account{totalSeats === 1 ? "" : "s"} on the
-                platform. No payment provider is connected — this page
-                reflects real usage, not billing charges.
+                platform. No payment provider is connected — this page reflects
+                real usage, not billing charges.
             </p>
         </div>
     )

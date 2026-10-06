@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useMemo, useState } from "react"
 
 import { PlusIcon, SearchIcon } from "@/components/dashboard/icons"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 export interface ProgramListItem {
     id: string
@@ -32,24 +33,24 @@ export function ProgramsList({
         const query = search.trim().toLowerCase()
         if (!query) return programs
         return programs.filter((p) =>
-            [p.title, p.category].filter(Boolean).some((f) =>
-                f!.toLowerCase().includes(query)
-            )
+            [p.title, p.category]
+                .filter(Boolean)
+                .some((f) => f!.toLowerCase().includes(query)),
         )
     }, [programs, search])
 
     return (
         <div>
-            <div className="flex items-start justify-between gap-6 flex-wrap mb-6">
-                <div>
-                    <h1 className="text-2xl font-extrabold text-[#171139]">
-                        Programs
-                    </h1>
-                    <p className="text-sm text-[#6B6690] mt-1">
-                        {programs.length} program
-                        {programs.length === 1 ? "" : "s"}.
-                    </p>
-                </div>
+            <div className="flex items-start justify-end gap-6 flex-wrap mb-6">
+                <PageHeader
+                    title={<>Programs</>}
+                    description={
+                        <>
+                            {programs.length} program{" "}
+                            {programs.length === 1 ? "" : "s"}.
+                        </>
+                    }
+                />
 
                 <div className="flex items-center gap-3">
                     <div className="relative">

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 export default async function ReportsPage() {
     const session = await auth()
@@ -45,17 +46,15 @@ export default async function ReportsPage() {
 
     const maxTitleCount = Math.max(
         1,
-        ...mentorsByTitle.map((row) => row._count._all)
+        ...mentorsByTitle.map((row) => row._count._all),
     )
 
     return (
         <div className="px-8 py-6">
-            <h1 className="text-2xl font-extrabold text-[#171139] mb-1">
-                Reports &amp; Analytics
-            </h1>
-            <p className="text-sm text-[#6B6690] mb-6">
-                Real-time snapshot of platform activity.
-            </p>
+            <PageHeader
+                title={<>Reports &amp; Analytics</>}
+                description={<>Real-time snapshot of platform activity.</>}
+            />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {STATS.map((stat) => (
@@ -66,9 +65,7 @@ export default async function ReportsPage() {
                         <p className="text-2xl font-extrabold text-[#171139] mb-1">
                             {stat.value}
                         </p>
-                        <p className="text-xs text-[#6B6690]">
-                            {stat.label}
-                        </p>
+                        <p className="text-xs text-[#6B6690]">{stat.label}</p>
                     </div>
                 ))}
             </div>

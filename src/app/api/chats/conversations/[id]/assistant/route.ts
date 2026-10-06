@@ -13,6 +13,9 @@ import {
 const HANDOFF_REPLY =
     "No problem — I've asked a mentor to join this chat. They'll pick up right here, and you'll see their replies in this conversation."
 
+const ERROR_REPLY =
+    "Sorry, I'm having trouble responding right now. Please try again in a moment, or ask to talk to a human mentor."
+
 async function* staticReply(text: string) {
     yield text
 }
@@ -56,17 +59,20 @@ export async function POST(
         return Response.json({ error: "Message can't be empty." }, { status: 400 })
     }
 
-    await prisma.conversationMessage.create({
-        data: {
-            conversationId,
-            author: "MENTEE",
-            authorUserId: session.user.id,
-            content,
-        },
-    })
-    await prisma.conversation.update({
+    // Save the mentee's message alongside the model call rather than before
+    // it — DB round trips would otherwise delay the first streamed token.
+    const savePromise = prisma.conversation.update({
         where: { id: conversationId },
-        data: { updatedAt: new Date() },
+        data: {
+            updatedAt: new Date(),
+            messages: {
+                create: {
+                    author: "MENTEE",
+                    authorUserId: session.user.id,
+                    content,
+                },
+            },
+        },
     })
 
     const history: AssistantHistoryMessage[] = [
@@ -95,6 +101,7 @@ export async function POST(
 
     const handOff = wantsHumanMentor(content)
     if (handOff) {
+        await savePromise
         await titlePromise
         await escalateConversation(conversationId)
     }
@@ -112,7 +119,18 @@ export async function POST(
                     full += chunk
                     controller.enqueue(encoder.encode(chunk))
                 }
+            } catch (err) {
+                if (!req.signal.aborted) {
+                    console.error("Assistant reply failed:", err)
+                    if (!full.trim()) {
+                        full = ERROR_REPLY
+                        controller.enqueue(encoder.encode(ERROR_REPLY))
+                    }
+                }
             } finally {
+                await savePromise.catch((err) =>
+                    console.error("Saving mentee message failed:", err)
+                )
                 await titlePromise
                 if (full.trim()) {
                     await prisma.conversationMessage.create({

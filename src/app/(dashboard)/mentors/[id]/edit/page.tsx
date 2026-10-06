@@ -5,14 +5,13 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { ChevronLeftIcon } from "@/components/dashboard/icons"
 import { EditMentorForm } from "@/components/dashboard/EditMentorForm"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 interface EditMentorPageProps {
     params: Promise<{ id: string }>
 }
 
-export default async function EditMentorPage({
-    params,
-}: EditMentorPageProps) {
+export default async function EditMentorPage({ params }: EditMentorPageProps) {
     const session = await auth()
     if (session?.user.role !== "ADMIN") {
         redirect("/dashboard")
@@ -37,12 +36,12 @@ export default async function EditMentorPage({
                 Back to Mentor
             </Link>
 
-            <h1 className="text-2xl font-extrabold text-[#171139] mb-1">
-                Edit Mentor
-            </h1>
-            <p className="text-sm text-[#6B6690] mb-6">
-                Update {mentor.name ?? mentor.email}&apos;s profile.
-            </p>
+            <PageHeader
+                title={<>Edit Mentor</>}
+                description={
+                    <>Update {mentor.name ?? mentor.email}&apos;s profile.</>
+                }
+            />
 
             <div className="bg-white rounded-2xl border border-[#EDEBF6] p-6">
                 <EditMentorForm

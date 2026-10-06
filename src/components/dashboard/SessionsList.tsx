@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useMemo, useState } from "react"
 
 import { PlusIcon, SearchIcon } from "@/components/dashboard/icons"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 export interface SessionListItem {
     id: string
@@ -36,22 +37,22 @@ export function SessionsList({
             [s.mentorName, s.menteeName]
                 .join(" ")
                 .toLowerCase()
-                .includes(query)
+                .includes(query),
         )
     }, [sessions, search])
 
     return (
         <div>
-            <div className="flex items-start justify-between gap-6 flex-wrap mb-6">
-                <div>
-                    <h1 className="text-2xl font-extrabold text-[#171139]">
-                        Sessions
-                    </h1>
-                    <p className="text-sm text-[#6B6690] mt-1">
-                        {sessions.length} session
-                        {sessions.length === 1 ? "" : "s"} scheduled.
-                    </p>
-                </div>
+            <div className="flex items-start justify-end gap-6 flex-wrap mb-6">
+                <PageHeader
+                    title={<>Sessions</>}
+                    description={
+                        <>
+                            {sessions.length} session{" "}
+                            {sessions.length === 1 ? "" : "s"} scheduled.
+                        </>
+                    }
+                />
 
                 <div className="flex items-center gap-3">
                     <div className="relative">
@@ -123,7 +124,7 @@ export function SessionsList({
                                     </td>
                                     <td className="px-6 py-4 text-sm text-[#6B6690]">
                                         {new Date(
-                                            s.scheduledAt
+                                            s.scheduledAt,
                                         ).toLocaleString()}
                                     </td>
                                     <td className="px-6 py-4 text-sm text-[#6B6690]">

@@ -8,6 +8,7 @@ import {
     updateUserRoleAction,
 } from "@/actions/users"
 import { SearchIcon, TrashIcon } from "@/components/dashboard/icons"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 export interface UserRow {
     id: string
@@ -33,9 +34,9 @@ export function UsersRolesTable({
 }) {
     const [search, setSearch] = useState("")
     const [pendingId, setPendingId] = useState<string | null>(null)
-    const [confirmingDeleteId, setConfirmingDeleteId] = useState<
-        string | null
-    >(null)
+    const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
+        null,
+    )
     const [error, setError] = useState<string | null>(null)
     const [isPending, startTransition] = useTransition()
 
@@ -45,7 +46,7 @@ export function UsersRolesTable({
         return users.filter((user) =>
             [user.name, user.email, user.role]
                 .filter(Boolean)
-                .some((field) => field!.toLowerCase().includes(query))
+                .some((field) => field!.toLowerCase().includes(query)),
         )
     }, [users, search])
 
@@ -86,16 +87,16 @@ export function UsersRolesTable({
 
     return (
         <div>
-            <div className="flex items-start justify-between gap-6 flex-wrap mb-6">
-                <div>
-                    <h1 className="text-2xl font-extrabold text-[#171139]">
-                        Users &amp; Roles
-                    </h1>
-                    <p className="text-sm text-[#6B6690] mt-1">
-                        {users.length} user{users.length === 1 ? "" : "s"} on
-                        the platform.
-                    </p>
-                </div>
+            <div className="flex items-start justify-end gap-6 flex-wrap mb-6">
+                <PageHeader
+                    title={<>Users &amp; Roles</>}
+                    description={
+                        <>
+                            {users.length} user{users.length === 1 ? "" : "s"}{" "}
+                            on the platform.
+                        </>
+                    }
+                />
 
                 <div className="relative">
                     <SearchIcon className="w-4 h-4 text-[#9C97BE] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -159,8 +160,7 @@ export function UsersRolesTable({
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-semibold text-[#171139] truncate">
-                                                        {user.name ??
-                                                            "Unnamed"}
+                                                        {user.name ?? "Unnamed"}
                                                         {isSelf && (
                                                             <span className="text-xs text-[#9C97BE] font-normal">
                                                                 {" "}
@@ -182,7 +182,7 @@ export function UsersRolesTable({
                                                     handleRoleChange(
                                                         user.id,
                                                         e.target
-                                                            .value as UserRow["role"]
+                                                            .value as UserRow["role"],
                                                     )
                                                 }
                                                 className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-[#6C4FE0]/40 disabled:opacity-60 ${ROLE_STYLES[user.role]}`}
@@ -203,7 +203,7 @@ export function UsersRolesTable({
                                                 onClick={() =>
                                                     handleToggleActive(
                                                         user.id,
-                                                        !user.isActive
+                                                        !user.isActive,
                                                     )
                                                 }
                                                 disabled={rowBusy || isSelf}
@@ -220,7 +220,7 @@ export function UsersRolesTable({
                                         </td>
                                         <td className="px-6 py-4 text-sm text-[#6B6690]">
                                             {new Date(
-                                                user.createdAt
+                                                user.createdAt,
                                             ).toLocaleDateString()}
                                         </td>
                                         <td className="px-6 py-4">
@@ -231,7 +231,7 @@ export function UsersRolesTable({
                                                     }
                                                     onBlur={() =>
                                                         setConfirmingDeleteId(
-                                                            null
+                                                            null,
                                                         )
                                                     }
                                                     disabled={rowBusy}

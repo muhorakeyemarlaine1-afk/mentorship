@@ -5,6 +5,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { ChevronLeftIcon } from "@/components/dashboard/icons"
 import { ProgramForm } from "@/components/dashboard/ProgramForm"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 interface EditProgramPageProps {
     params: Promise<{ id: string }>
@@ -35,12 +36,10 @@ export default async function EditProgramPage({
                 Back to Program
             </Link>
 
-            <h1 className="text-2xl font-extrabold text-[#171139] mb-1">
-                Edit Program
-            </h1>
-            <p className="text-sm text-[#6B6690] mb-6">
-                Update {program.title}.
-            </p>
+            <PageHeader
+                title={<>Edit Program</>}
+                description={<>Update {program.title}.</>}
+            />
 
             <div className="bg-white rounded-2xl border border-[#EDEBF6] p-6">
                 <ProgramForm

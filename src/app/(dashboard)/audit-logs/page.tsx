@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 export default async function AuditLogsPage() {
     const session = await auth()
@@ -16,13 +17,15 @@ export default async function AuditLogsPage() {
 
     return (
         <div className="px-8 py-6">
-            <h1 className="text-2xl font-extrabold text-[#171139] mb-1">
-                Audit Logs
-            </h1>
-            <p className="text-sm text-[#6B6690] mb-6">
-                {logs.length} recent action{logs.length === 1 ? "" : "s"}{" "}
-                across the platform.
-            </p>
+            <PageHeader
+                title={<>Audit Logs</>}
+                description={
+                    <>
+                        {logs.length} recent action
+                        {logs.length === 1 ? "" : "s"} across the platform.
+                    </>
+                }
+            />
 
             <div className="bg-white rounded-2xl border border-[#EDEBF6] overflow-hidden overflow-x-auto">
                 {logs.length === 0 ? (

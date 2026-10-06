@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { ChevronLeftIcon } from "@/components/dashboard/icons"
 import { ProgramForm } from "@/components/dashboard/ProgramForm"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 export default async function NewProgramPage() {
     const session = await auth()
@@ -21,12 +22,10 @@ export default async function NewProgramPage() {
                 Back to Programs
             </Link>
 
-            <h1 className="text-2xl font-extrabold text-[#171139] mb-1">
-                New Program
-            </h1>
-            <p className="text-sm text-[#6B6690] mb-6">
-                Create a mentorship program.
-            </p>
+            <PageHeader
+                title={<>New Program</>}
+                description={<>Create a mentorship program.</>}
+            />
 
             <div className="bg-white rounded-2xl border border-[#EDEBF6] p-6">
                 <ProgramForm />

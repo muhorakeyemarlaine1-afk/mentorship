@@ -54,7 +54,7 @@ export default async function DashboardGroupLayout({
                     user={session.user}
                     unreadNotifications={unreadNotifications}
                 />
-                <main className="flex-1 min-w-0">{children}</main>
+                <main className="flex-1 min-w-0 pt-4">{children}</main>
             </div>
         </div>
     )

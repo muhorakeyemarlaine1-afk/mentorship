@@ -13,6 +13,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { CreateMenteeForm } from "@/components/dashboard/CreateMenteeForm"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 export interface MenteeListItem {
     id: string
@@ -32,22 +33,22 @@ export function MenteesList({ mentees }: { mentees: MenteeListItem[] }) {
         return mentees.filter((mentee) =>
             [mentee.name, mentee.email, mentee.title]
                 .filter(Boolean)
-                .some((field) => field!.toLowerCase().includes(query))
+                .some((field) => field!.toLowerCase().includes(query)),
         )
     }, [mentees, search])
 
     return (
         <div>
-            <div className="flex items-start justify-between gap-6 flex-wrap mb-6">
-                <div>
-                    <h1 className="text-2xl font-extrabold text-[#171139]">
-                        Mentees
-                    </h1>
-                    <p className="text-sm text-[#6B6690] mt-1">
-                        {mentees.length} mentee
-                        {mentees.length === 1 ? "" : "s"} on the platform.
-                    </p>
-                </div>
+            <div className="flex items-start justify-end gap-6 flex-wrap mb-6">
+                <PageHeader
+                    title={<>Mentees</>}
+                    description={
+                        <>
+                            {mentees.length} mentee{" "}
+                            {mentees.length === 1 ? "" : "s"} on the platform.
+                        </>
+                    }
+                />
 
                 <div className="flex items-center gap-3">
                     <div className="relative">
@@ -151,7 +152,7 @@ export function MenteesList({ mentees }: { mentees: MenteeListItem[] }) {
                                     </td>
                                     <td className="px-6 py-4 text-sm text-[#6B6690]">
                                         {new Date(
-                                            mentee.createdAt
+                                            mentee.createdAt,
                                         ).toLocaleDateString()}
                                     </td>
                                 </tr>

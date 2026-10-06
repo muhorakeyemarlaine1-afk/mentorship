@@ -11,6 +11,7 @@ import {
     BarChartIcon,
     SettingsIcon,
 } from "@/components/dashboard/icons"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 export interface DashboardStats {
     totalMentors: number
@@ -111,15 +112,15 @@ export function DashboardContent({
 
     return (
         <div className="px-8 py-6">
-            <div className="mb-7">
-                <h1 className="text-2xl font-extrabold text-[#171139]">
-                    Welcome back, {adminName} 👋
-                </h1>
-                <p className="text-sm text-[#6B6690] mt-1">
-                    Here&apos;s what&apos;s happening with your mentorship
-                    platform today.
-                </p>
-            </div>
+            <PageHeader
+                title={<>Welcome back, {adminName} 👋</>}
+                description={
+                    <>
+                        Here&apos;s what&apos;s happening with your mentorship
+                        platform today.
+                    </>
+                }
+            />
 
             {!isAdmin && (
                 <div className="bg-white rounded-2xl border border-[#EDEBF6] p-5 max-w-xl">

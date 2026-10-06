@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { ProfileForm } from "@/components/dashboard/ProfileForm"
 import { ChangePasswordForm } from "@/components/dashboard/ChangePasswordForm"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 export default async function SettingsPage() {
     const session = await auth()
@@ -20,12 +21,10 @@ export default async function SettingsPage() {
 
     return (
         <div className="px-8 py-6 max-w-2xl">
-            <h1 className="text-2xl font-extrabold text-[#171139] mb-1">
-                Settings
-            </h1>
-            <p className="text-sm text-[#6B6690] mb-6">
-                Manage your account details.
-            </p>
+            <PageHeader
+                title={<>Settings</>}
+                description={<>Manage your account details.</>}
+            />
 
             <div className="bg-white rounded-2xl border border-[#EDEBF6] p-6 mb-6">
                 <h2 className="text-base font-bold text-[#171139] mb-4">

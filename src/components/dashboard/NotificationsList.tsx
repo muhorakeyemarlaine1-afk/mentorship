@@ -8,6 +8,7 @@ import {
     markNotificationReadAction,
 } from "@/actions/notifications"
 import { TrashIcon } from "@/components/dashboard/icons"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 export interface NotificationItem {
     id: string
@@ -27,15 +28,15 @@ export function NotificationsList({
 
     return (
         <div>
-            <div className="flex items-start justify-between gap-6 flex-wrap mb-6">
-                <div>
-                    <h1 className="text-2xl font-extrabold text-[#171139]">
-                        Notifications
-                    </h1>
-                    <p className="text-sm text-[#6B6690] mt-1">
-                        {unreadCount} unread of {notifications.length}.
-                    </p>
-                </div>
+            <div className="flex items-start justify-end gap-6 flex-wrap mb-6">
+                <PageHeader
+                    title={<>Notifications</>}
+                    description={
+                        <>
+                            {unreadCount} unread of {notifications.length}.
+                        </>
+                    }
+                />
                 {unreadCount > 0 && (
                     <button
                         onClick={() =>
@@ -85,7 +86,7 @@ export function NotificationsList({
                                             startTransition(async () => {
                                                 await markNotificationReadAction(
                                                     n.id,
-                                                    true
+                                                    true,
                                                 )
                                             })
                                         }
@@ -98,9 +99,7 @@ export function NotificationsList({
                                 <button
                                     onClick={() =>
                                         startTransition(async () => {
-                                            await deleteNotificationAction(
-                                                n.id
-                                            )
+                                            await deleteNotificationAction(n.id)
                                         })
                                     }
                                     disabled={isPending}

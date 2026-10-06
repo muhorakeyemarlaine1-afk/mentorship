@@ -15,6 +15,7 @@ import {
     MenubarSeparator,
     MenubarTrigger,
 } from "@/components/ui/menubar"
+import { PAGE_HEADER_SLOT_ID } from "@/components/dashboard/PageHeader"
 
 interface TopNavbarUser {
     name?: string | null
@@ -41,7 +42,8 @@ export function TopNavbar({
     const initial = (user.name ?? user.email ?? "?")[0]?.toUpperCase()
 
     return (
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-end border-b border-[#EDEBF6] bg-white px-6">
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-[#EDEBF6] bg-white px-6">
+            <div id={PAGE_HEADER_SLOT_ID} className="min-w-0 flex-1" />
             <Menubar className="h-auto gap-1 rounded-full border-none bg-transparent p-0 shadow-none">
                 <MenubarMenu>
                     <MenubarTrigger className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#6B6690] hover:bg-[#F6F7FB] hover:text-[#171139]">
@@ -116,9 +118,7 @@ export function TopNavbar({
                                 ) : (
                                     <LogOut />
                                 )}
-                                {isSigningOut
-                                    ? "Signing out..."
-                                    : "Sign out"}
+                                {isSigningOut ? "Signing out..." : "Sign out"}
                             </MenubarItem>
                         </MenubarGroup>
                     </MenubarContent>

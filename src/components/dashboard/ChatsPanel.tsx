@@ -62,6 +62,62 @@ function conversationStatusLabel(c: ConversationSummary, viewerRole: Role) {
     return "Waiting for a mentor"
 }
 
+/**
+ * Reveals streamed text a few characters per frame. The model sends text in
+ * ~100-character bursts; without this each burst appears all at once. The
+ * pace scales with the backlog so the reveal never falls far behind.
+ */
+function createTypewriter(onUpdate: (text: string) => void) {
+    let target = ""
+    let shown = 0
+    let frame: number | null = null
+    let onDone: (() => void) | null = null
+
+    function tick() {
+        const backlog = target.length - shown
+        if (backlog <= 0) {
+            frame = null
+            onDone?.()
+            return
+        }
+        shown += Math.max(1, Math.ceil(backlog / 30))
+        onUpdate(target.slice(0, shown))
+        frame = requestAnimationFrame(tick)
+    }
+
+    return {
+        push(text: string) {
+            target = text
+            frame ??= requestAnimationFrame(tick)
+        },
+        /** Resolves once everything pushed so far has been revealed. */
+        finish() {
+            return new Promise<void>((resolve) => {
+                if (frame === null) return resolve()
+                onDone = resolve
+            })
+        },
+    }
+}
+
+function TypingDots() {
+    return (
+        <span
+            role="status"
+            aria-label="AI Assistant is typing"
+            className="flex items-center gap-1 h-5"
+        >
+            {[0, 150, 300].map((delay) => (
+                <span
+                    key={delay}
+                    className="w-1.5 h-1.5 rounded-full bg-[#E07830] animate-bounce motion-reduce:animate-pulse"
+                    style={{ animationDelay: `${delay}ms` }}
+                />
+            ))}
+        </span>
+    )
+}
+
 function authorLabel(m: ConversationMessageView, c: ConversationSummary) {
     if (m.author === "ASSISTANT") return "AI Assistant"
     if (m.mine) return "You"
@@ -163,21 +219,28 @@ export function ChatsPanel({
             }
             const reader = res.body.getReader()
             const decoder = new TextDecoder()
+            const typewriter = createTypewriter(setStreamingText)
             let acc = ""
             while (true) {
                 const { done, value } = await reader.read()
                 if (done) break
                 acc += decoder.decode(value, { stream: true })
-                setStreamingText(acc)
+                typewriter.push(acc)
             }
+            await typewriter.finish()
         } finally {
             if (conversationId && conversationId !== activeConversation?.id) {
                 router.replace(`/chats?conversation=${conversationId}`)
             } else {
-                setIsStreaming(false)
-                setPendingText(null)
-                setStreamingText("")
-                router.refresh()
+                // Clear the optimistic bubbles in the same transition as the
+                // refresh, so they're swapped for the saved messages in one
+                // commit instead of vanishing until the refresh lands.
+                startTransition(() => {
+                    router.refresh()
+                    setIsStreaming(false)
+                    setPendingText(null)
+                    setStreamingText("")
+                })
             }
         }
     }
@@ -385,7 +448,7 @@ export function ChatsPanel({
                                             AI Assistant
                                         </span>
                                         <div className="max-w-[85%] sm:max-w-md px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap break-words bg-[#FEF4EC] text-[#171139] rounded-bl-sm">
-                                            {streamingText || "…"}
+                                            {streamingText || <TypingDots />}
                                         </div>
                                     </div>
                                 )}

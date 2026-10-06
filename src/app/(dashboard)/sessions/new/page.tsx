@@ -5,6 +5,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { ChevronLeftIcon } from "@/components/dashboard/icons"
 import { CreateSessionForm } from "@/components/dashboard/CreateSessionForm"
+import { PageHeader } from "@/components/dashboard/PageHeader"
 
 export default async function NewSessionPage() {
     const session = await auth()
@@ -35,12 +36,10 @@ export default async function NewSessionPage() {
                 Back to Sessions
             </Link>
 
-            <h1 className="text-2xl font-extrabold text-[#171139] mb-1">
-                Schedule a Session
-            </h1>
-            <p className="text-sm text-[#6B6690] mb-6">
-                Pair a mentor and mentee for a session.
-            </p>
+            <PageHeader
+                title={<>Schedule a Session</>}
+                description={<>Pair a mentor and mentee for a session.</>}
+            />
 
             <div className="bg-white rounded-2xl border border-[#EDEBF6] p-6">
                 {mentors.length === 0 || mentees.length === 0 ? (
