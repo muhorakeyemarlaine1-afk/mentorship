@@ -7,6 +7,7 @@ import {
     streamAssistantReply,
     suggestConversationTitle,
     wantsHumanMentor,
+    errorMessage,
     type AssistantHistoryMessage,
 } from "@/lib/ai/assistant"
 
@@ -121,7 +122,7 @@ export async function POST(
                 }
             } catch (err) {
                 if (!req.signal.aborted) {
-                    console.error("Assistant reply failed:", err)
+                    console.error("Assistant reply failed:", errorMessage(err))
                     if (!full.trim()) {
                         full = ERROR_REPLY
                         controller.enqueue(encoder.encode(ERROR_REPLY))

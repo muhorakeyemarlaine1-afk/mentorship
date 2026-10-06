@@ -1,4 +1,4 @@
-import { GoogleGenAI, ThinkingLevel, type Content } from "@google/genai"
+import { OpenRouter } from "@openrouter/sdk"
 
 export interface AssistantHistoryMessage {
     role: "user" | "assistant"
@@ -6,27 +6,27 @@ export interface AssistantHistoryMessage {
 }
 
 /**
- * Replies come from Google AI Studio (Gemini API) when `GEMINI_API_KEY` is
- * set; without a key, a canned local reply keeps the chat usable in dev.
+ * Replies come from OpenRouter when `OPENROUTER_API_KEY` is set; without a
+ * key, a canned local reply keeps the chat usable in dev.
  */
-const apiKey = process.env.GEMINI_API_KEY
-const MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest"
-const ai = apiKey ? new GoogleGenAI({ apiKey }) : null
-// Default (dynamic) thinking delays the first token by several seconds;
-// chat replies don't need deep reasoning.
-const THINKING_CONFIG = { thinkingLevel: ThinkingLevel.LOW }
+const apiKey = process.env.OPENROUTER_API_KEY
+const MODEL =
+    process.env.OPENROUTER_MODEL || "nvidia/nemotron-3-ultra-550b-a55b:free"
+const openRouter = apiKey
+    ? new OpenRouter({
+          apiKey,
+          httpReferer: process.env.APP_URL,
+          appTitle: "Mentorship",
+      })
+    : null
+// Nemotron reasons before answering; keep it light so the first token
+// isn't delayed by several seconds. Chat replies don't need deep reasoning.
+const REASONING = { effort: "low" } as const
 
 const SYSTEM_INSTRUCTION = `You are a warm, practical mentorship assistant on a mentoring platform, talking with a mentee.
 Help them think through career, study, and personal-growth questions: ask clarifying questions, offer concrete next steps, and keep replies concise and conversational (plain text, short paragraphs).
 You are an AI, not a human mentor. If the mentee needs specialised, sensitive, or ongoing support, remind them they can ask to talk to a human mentor at any time.
 If someone seems to be in crisis or at risk of harm, encourage them to contact local emergency services or a crisis line right away.`
-
-function toGeminiContents(history: AssistantHistoryMessage[]): Content[] {
-    return history.map((m) => ({
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-    }))
-}
 
 /**
  * Streams the assistant's reply as plain text deltas. `signal` is passed to
@@ -36,23 +36,32 @@ export async function* streamAssistantReply(
     history: AssistantHistoryMessage[],
     signal?: AbortSignal
 ): AsyncGenerator<string, void, unknown> {
-    if (!ai) {
+    if (!openRouter) {
         yield* stubReply(history, signal)
         return
     }
 
-    const stream = await ai.models.generateContentStream({
-        model: MODEL,
-        contents: toGeminiContents(history),
-        config: {
-            systemInstruction: SYSTEM_INSTRUCTION,
-            thinkingConfig: THINKING_CONFIG,
-            abortSignal: signal,
+    const stream = await openRouter.chat.send(
+        {
+            chatRequest: {
+                model: MODEL,
+                messages: [
+                    { role: "system", content: SYSTEM_INSTRUCTION },
+                    ...history,
+                ],
+                reasoning: REASONING,
+                stream: true,
+            },
         },
-    })
+        { signal }
+    )
+    if (!(Symbol.asyncIterator in stream)) {
+        throw new Error("OpenRouter returned a non-streaming response.")
+    }
     for await (const chunk of stream) {
         if (signal?.aborted) return
-        if (chunk.text) yield chunk.text
+        const text = chunk.choices[0]?.delta?.content
+        if (text) yield text
     }
 }
 
@@ -80,24 +89,38 @@ export async function suggestConversationTitle(
     const firstUserMessage =
         history.find((m) => m.role === "user")?.content ?? ""
 
-    if (ai && firstUserMessage.trim()) {
+    if (openRouter && firstUserMessage.trim()) {
         try {
-            const res = await ai.models.generateContent({
-                model: MODEL,
-                contents: firstUserMessage.slice(0, 2000),
-                config: {
-                    thinkingConfig: THINKING_CONFIG,
-                    systemInstruction:
-                        "Write a 3-6 word title for a mentoring chat that opens with the user's message. Reply with the title only, no quotes or trailing punctuation.",
+            const res = await openRouter.chat.send({
+                chatRequest: {
+                    model: MODEL,
+                    messages: [
+                        {
+                            role: "system",
+                            content:
+                                "Write a 3-6 word title for a mentoring chat that opens with the user's message. Reply with the title only, no quotes or trailing punctuation.",
+                        },
+                        {
+                            role: "user",
+                            content: firstUserMessage.slice(0, 2000),
+                        },
+                    ],
+                    reasoning: REASONING,
+                    stream: false,
                 },
             })
-            const title = res.text
-                ?.trim()
-                .replace(/^["'“”]+|["'“”.]+$/g, "")
-                .slice(0, 80)
+            const content =
+                "choices" in res ? res.choices[0]?.message.content : null
+            const title =
+                typeof content === "string"
+                    ? content
+                          .trim()
+                          .replace(/^["'“”]+|["'“”.]+$/g, "")
+                          .slice(0, 80)
+                    : ""
             if (title) return title
         } catch (err) {
-            console.error("Gemini title generation failed:", err)
+            console.error("OpenRouter title generation failed:", errorMessage(err))
         }
     }
 
@@ -110,6 +133,14 @@ export async function suggestConversationTitle(
     const words = cleaned.split(" ").slice(0, 6).join(" ")
     const title = words.length < cleaned.length ? `${words}…` : words
     return title.charAt(0).toUpperCase() + title.slice(1)
+}
+
+/**
+ * Log-safe description of a provider error. SDK errors carry the raw request,
+ * including the `Authorization` header, so never log the error object itself.
+ */
+export function errorMessage(err: unknown) {
+    return err instanceof Error ? err.message : String(err)
 }
 
 const HUMAN_MENTOR_PATTERN =

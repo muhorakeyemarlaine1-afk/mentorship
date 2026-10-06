@@ -12,6 +12,14 @@ export async function startConversationAction() {
         return { error: "Only mentees can start a chat with the assistant." }
     }
 
+    const mentee = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { id: true },
+    })
+    if (!mentee) {
+        return { error: "Your session is out of date. Please sign out and sign in again." }
+    }
+
     const conversation = await prisma.conversation.create({
         data: { menteeId: session.user.id },
     })
