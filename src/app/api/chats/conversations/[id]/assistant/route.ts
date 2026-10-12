@@ -12,7 +12,7 @@ import {
 } from "@/lib/ai/assistant"
 
 const HANDOFF_REPLY =
-    "No problem — I've asked a mentor to join this chat. They'll pick up right here, and you'll see their replies in this conversation."
+    "No problem — I've opened a request for a human mentor. The first available mentor will pick it up right here, and you'll see their replies in this conversation."
 
 const ERROR_REPLY =
     "Sorry, I'm having trouble responding right now. Please try again in a moment, or ask to talk to a human mentor."

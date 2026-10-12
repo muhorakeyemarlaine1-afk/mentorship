@@ -5,9 +5,15 @@ import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState, useTransition } from "react"
 
 import {
-    postHumanMessageAction,
+    assignMentorAction,
     claimConversationAction,
+    escalateToAdminAction,
+    joinConversationAction,
+    leaveConversationAction,
+    postHumanMessageAction,
     requestEscalationAction,
+    resolveEscalationAction,
+    returnToQueueAction,
     startConversationAction,
 } from "@/actions/conversations"
 import {
@@ -23,20 +29,36 @@ import {
 export interface ConversationSummary {
     id: string
     title: string | null
+    menteeId: string
     menteeName: string
     mentorId: string | null
     mentorName: string | null
+    adminId: string | null
+    adminName: string | null
     status: "AI_ONLY" | "ESCALATED"
+    /** A mentee request no mentor has picked up yet. */
     isOpenQueueItem: boolean
+    /** The assigned mentor escalated the chat to an admin. */
+    needsAdmin: boolean
+    escalationNote: string | null
     time: string
 }
 
 export interface ConversationMessageView {
     id: string
-    author: "MENTEE" | "ASSISTANT" | "MENTOR"
+    author: "MENTEE" | "ASSISTANT" | "MENTOR" | "ADMIN" | "SYSTEM"
+    authorName: string | null
     mine: boolean
     text: string
     time: string
+}
+
+export interface MentorOption {
+    id: string
+    name: string
+    title: string | null
+    activeChats: number
+    matchedMenteeIds: string[]
 }
 
 type Role = "ADMIN" | "MENTOR" | "MENTEE"
@@ -52,13 +74,20 @@ function conversationTitle(c: ConversationSummary) {
 }
 
 function conversationStatusLabel(c: ConversationSummary, viewerRole: Role) {
+    if (viewerRole === "ADMIN") {
+        const mentor = c.mentorName ? `with ${c.mentorName}` : "unassigned"
+        return `${c.menteeName} · ${c.needsAdmin ? "escalated, " : ""}${mentor}`
+    }
     if (viewerRole === "MENTOR") {
-        return c.isOpenQueueItem
-            ? `${c.menteeName} · needs a mentor`
+        if (c.isOpenQueueItem) return `${c.menteeName} · needs a mentor`
+        if (c.needsAdmin) return `${c.menteeName} · waiting for an admin`
+        return c.adminName
+            ? `${c.menteeName} · with ${c.adminName} (admin)`
             : c.menteeName
     }
     if (c.status === "AI_ONLY") return "AI assistant"
     if (c.mentorId) return `With ${c.mentorName ?? "your mentor"}`
+    if (c.adminId) return `With ${c.adminName ?? "an admin"}`
     return "Waiting for a mentor"
 }
 
@@ -121,7 +150,8 @@ function TypingDots() {
 function authorLabel(m: ConversationMessageView, c: ConversationSummary) {
     if (m.author === "ASSISTANT") return "AI Assistant"
     if (m.mine) return "You"
-    if (m.author === "MENTOR") return c.mentorName ?? "Mentor"
+    if (m.author === "MENTOR") return m.authorName ?? "Mentor"
+    if (m.author === "ADMIN") return `${m.authorName ?? "Admin"} (admin)`
     return c.menteeName
 }
 
@@ -131,12 +161,14 @@ export function ChatsPanel({
     conversationMessages,
     currentUserId,
     currentUserRole,
+    mentorOptions,
 }: {
     conversations: ConversationSummary[]
     activeConversation: ConversationSummary | null
     conversationMessages: ConversationMessageView[]
     currentUserId: string
     currentUserRole: Role
+    mentorOptions: MentorOption[]
 }) {
     const router = useRouter()
     const [historyOpen, setHistoryOpen] = useState(false)
@@ -147,9 +179,14 @@ export function ChatsPanel({
     const [pendingText, setPendingText] = useState<string | null>(null)
     const [streamingText, setStreamingText] = useState("")
     const [isStreaming, setIsStreaming] = useState(false)
+    const [escalateOpen, setEscalateOpen] = useState(false)
+    const [escalationNote, setEscalationNote] = useState("")
+    const [selectedMentorId, setSelectedMentorId] = useState("")
     const bottomRef = useRef<HTMLDivElement>(null)
 
     const isMentee = currentUserRole === "MENTEE"
+    const isMentor = currentUserRole === "MENTOR"
+    const isAdmin = currentUserRole === "ADMIN"
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ block: "end" })
@@ -169,23 +206,37 @@ export function ChatsPanel({
         (c) =>
             !query ||
             conversationTitle(c).toLowerCase().includes(query) ||
-            c.menteeName.toLowerCase().includes(query)
+            c.menteeName.toLowerCase().includes(query),
     )
     const openRequests = filtered.filter((c) => c.isOpenQueueItem)
     const ownChats = filtered.filter((c) => !c.isOpenQueueItem)
+    const escalatedChats = filtered.filter((c) => c.needsAdmin)
+    const assignedChats = filtered.filter(
+        (c) => !c.needsAdmin && !c.isOpenQueueItem,
+    )
 
     // Mentees always talk to the AI unless the chat was handed to a mentor;
     // a brand new chat (no conversation yet) is created on first send.
     const talkingToAi =
-        isMentee && (!activeConversation || activeConversation.status === "AI_ONLY")
+        isMentee &&
+        (!activeConversation || activeConversation.status === "AI_ONLY")
 
     const canCompose =
         isMentee ||
-        (currentUserRole === "MENTOR" &&
-            activeConversation?.mentorId === currentUserId)
+        (isMentor && activeConversation?.mentorId === currentUserId) ||
+        (isAdmin && activeConversation?.adminId === currentUserId)
 
-    const canClaim =
-        currentUserRole === "MENTOR" && !!activeConversation?.isOpenQueueItem
+    const canClaim = isMentor && !!activeConversation?.isOpenQueueItem
+
+    const canEscalate =
+        isMentor &&
+        activeConversation?.mentorId === currentUserId &&
+        !activeConversation.needsAdmin
+
+    // Admins can pair the mentee with anyone but the mentor already on it.
+    const assignableMentors = mentorOptions.filter(
+        (m) => m.id !== activeConversation?.mentorId,
+    )
 
     async function sendToAi(content: string) {
         setIsStreaming(true)
@@ -210,7 +261,7 @@ export function ChatsPanel({
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ content }),
-                }
+                },
             )
             if (!res.ok || !res.body) {
                 const body = await res.json().catch(() => null)
@@ -261,7 +312,7 @@ export function ChatsPanel({
         startTransition(async () => {
             const result = await postHumanMessageAction(
                 activeConversation.id,
-                content
+                content,
             )
             if (result.error) {
                 setError(result.error)
@@ -280,13 +331,43 @@ export function ChatsPanel({
         })
     }
 
-    function handleClaim() {
-        if (!activeConversation) return
+    function runAction(
+        action: () => Promise<{ error?: string; success?: boolean }>,
+        onSuccess?: () => void,
+    ) {
+        setError(null)
         startTransition(async () => {
-            const result = await claimConversationAction(activeConversation.id)
+            const result = await action()
             if (result.error) setError(result.error)
+            else onSuccess?.()
             router.refresh()
         })
+    }
+
+    function handleClaim() {
+        if (!activeConversation) return
+        runAction(() => claimConversationAction(activeConversation.id))
+    }
+
+    function handleEscalate(e: React.FormEvent) {
+        e.preventDefault()
+        if (!activeConversation || !escalationNote.trim()) return
+        runAction(
+            () => escalateToAdminAction(activeConversation.id, escalationNote),
+            () => {
+                setEscalateOpen(false)
+                setEscalationNote("")
+            },
+        )
+    }
+
+    function handleAssign(e: React.FormEvent) {
+        e.preventDefault()
+        if (!activeConversation || !selectedMentorId) return
+        runAction(
+            () => assignMentorAction(activeConversation.id, selectedMentorId),
+            () => setSelectedMentorId(""),
+        )
     }
 
     function renderConversationLink(c: ConversationSummary) {
@@ -324,6 +405,9 @@ export function ChatsPanel({
                         </span>
                     </div>
                     <p className="text-xs text-[#6B6690] truncate">
+                        {c.needsAdmin && !isMentee && (
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#D14343] mr-1.5 align-middle" />
+                        )}
                         {conversationStatusLabel(c, currentUserRole)}
                     </p>
                 </div>
@@ -331,8 +415,7 @@ export function ChatsPanel({
         )
     }
 
-    const showMessages =
-        conversationMessages.length > 0 || pendingText !== null
+    const showMessages = conversationMessages.length > 0 || pendingText !== null
 
     return (
         <div className="flex-1 min-h-0 px-4 sm:px-8 pb-6">
@@ -356,7 +439,7 @@ export function ChatsPanel({
                                     {activeConversation
                                         ? conversationStatusLabel(
                                               activeConversation,
-                                              currentUserRole
+                                              currentUserRole,
                                           )
                                         : isMentee
                                           ? "AI assistant"
@@ -378,7 +461,9 @@ export function ChatsPanel({
                                         <span className="hidden sm:inline">
                                             Talk to a mentor
                                         </span>
-                                        <span className="sm:hidden">Mentor</span>
+                                        <span className="sm:hidden">
+                                            Mentor
+                                        </span>
                                     </button>
                                 )}
 
@@ -393,6 +478,57 @@ export function ChatsPanel({
                                 </button>
                             )}
 
+                            {canEscalate && (
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setEscalateOpen((open) => !open)
+                                    }
+                                    aria-expanded={escalateOpen}
+                                    disabled={isPending}
+                                    className="text-xs font-semibold text-[#D14343] border border-[#F5D0D0] px-3 py-1.5 rounded-full hover:bg-[#FDF2F2] transition-colors disabled:opacity-60"
+                                >
+                                    Escalate
+                                </button>
+                            )}
+
+                            {isAdmin &&
+                                activeConversation &&
+                                (activeConversation.adminId ===
+                                currentUserId ? (
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            runAction(() =>
+                                                leaveConversationAction(
+                                                    activeConversation.id,
+                                                ),
+                                            )
+                                        }
+                                        disabled={isPending}
+                                        className="text-xs font-semibold text-[#6C4FE0] border border-[#E4DBFF] px-3 py-1.5 rounded-full hover:bg-[#F3EFFF] transition-colors disabled:opacity-60"
+                                    >
+                                        Leave chat
+                                    </button>
+                                ) : (
+                                    !activeConversation.adminId && (
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                runAction(() =>
+                                                    joinConversationAction(
+                                                        activeConversation.id,
+                                                    ),
+                                                )
+                                            }
+                                            disabled={isPending}
+                                            className="text-xs font-semibold bg-[#6C4FE0] text-white px-3 py-1.5 rounded-full hover:bg-[#5B3FD6] transition-colors disabled:opacity-60"
+                                        >
+                                            Join chat
+                                        </button>
+                                    )
+                                ))}
+
                             <button
                                 type="button"
                                 onClick={() => setHistoryOpen(true)}
@@ -406,38 +542,192 @@ export function ChatsPanel({
                         </div>
                     </header>
 
+                    {escalateOpen && canEscalate && (
+                        <form
+                            onSubmit={handleEscalate}
+                            className="flex flex-col gap-2 px-4 sm:px-5 py-3 border-b border-[#EDEBF6] bg-[#FDF8F8] shrink-0"
+                        >
+                            <label
+                                htmlFor="escalation-note"
+                                className="text-xs font-semibold text-[#171139]"
+                            >
+                                What do you need an admin to help with?
+                            </label>
+                            <textarea
+                                id="escalation-note"
+                                value={escalationNote}
+                                onChange={(e) =>
+                                    setEscalationNote(e.target.value)
+                                }
+                                rows={2}
+                                placeholder="e.g. This needs a mentor with finance experience, or the mentee would like someone else."
+                                className="w-full px-3 py-2 rounded-xl border border-[#EDEBF6] bg-white text-sm text-[#171139] placeholder-[#9C97BE] focus:outline-none focus:border-[#6C4FE0] resize-none"
+                            />
+                            <div className="flex justify-end gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setEscalateOpen(false)}
+                                    className="text-xs font-semibold text-[#6B6690] px-3 py-1.5 rounded-full hover:bg-[#F6F7FB]"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={
+                                        isPending || !escalationNote.trim()
+                                    }
+                                    className="text-xs font-semibold bg-[#D14343] text-white px-3 py-1.5 rounded-full hover:bg-[#B93636] transition-colors disabled:opacity-60"
+                                >
+                                    Escalate to admin
+                                </button>
+                            </div>
+                        </form>
+                    )}
+
+                    {!isMentee && activeConversation?.needsAdmin && (
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 sm:px-5 py-3 border-b border-[#EDEBF6] bg-[#FDF2F2] shrink-0">
+                            <p className="flex-1 min-w-0 text-xs text-[#171139]">
+                                <span className="font-semibold text-[#D14343]">
+                                    Escalated to admin
+                                </span>
+                                {activeConversation.escalationNote && (
+                                    <>
+                                        {" "}
+                                        · &ldquo;
+                                        {activeConversation.escalationNote}
+                                        &rdquo;
+                                    </>
+                                )}
+                            </p>
+                            {isAdmin && (
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        runAction(() =>
+                                            resolveEscalationAction(
+                                                activeConversation.id,
+                                            ),
+                                        )
+                                    }
+                                    disabled={isPending}
+                                    className="self-start sm:self-auto text-xs font-semibold text-[#6B6690] border border-[#EDEBF6] bg-white px-3 py-1.5 rounded-full hover:bg-[#F6F7FB] transition-colors disabled:opacity-60 shrink-0"
+                                >
+                                    Mark resolved
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {isAdmin && activeConversation && (
+                        <form
+                            onSubmit={handleAssign}
+                            className="flex flex-wrap items-center gap-2 px-4 sm:px-5 py-3 border-b border-[#EDEBF6] bg-[#F9F8FD] shrink-0"
+                        >
+                            <label htmlFor="assign-mentor" className="sr-only">
+                                {activeConversation.mentorId
+                                    ? "Move to another mentor"
+                                    : "Pair with a mentor"}
+                            </label>
+                            <select
+                                id="assign-mentor"
+                                value={selectedMentorId}
+                                onChange={(e) =>
+                                    setSelectedMentorId(e.target.value)
+                                }
+                                className="flex-1 min-w-0 basis-48 px-3 py-1.5 rounded-xl border border-[#EDEBF6] bg-white text-sm text-[#171139] focus:outline-none focus:border-[#6C4FE0]"
+                            >
+                                <option value="">
+                                    {activeConversation.mentorId
+                                        ? "Move to another mentor…"
+                                        : "Pair with a mentor…"}
+                                </option>
+                                {assignableMentors.map((m) => (
+                                    <option key={m.id} value={m.id}>
+                                        {m.name}
+                                        {m.title ? ` · ${m.title}` : ""}
+                                        {` · ${m.activeChats} active`}
+                                        {m.matchedMenteeIds.includes(
+                                            activeConversation.menteeId,
+                                        )
+                                            ? " · matched"
+                                            : ""}
+                                    </option>
+                                ))}
+                            </select>
+                            <button
+                                type="submit"
+                                disabled={isPending || !selectedMentorId}
+                                className="text-xs font-semibold bg-[#6C4FE0] text-white px-3 py-1.5 rounded-full hover:bg-[#5B3FD6] transition-colors disabled:opacity-60"
+                            >
+                                {activeConversation.mentorId
+                                    ? "Reassign"
+                                    : "Assign"}
+                            </button>
+                            {activeConversation.mentorId && (
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        runAction(() =>
+                                            returnToQueueAction(
+                                                activeConversation.id,
+                                            ),
+                                        )
+                                    }
+                                    disabled={isPending}
+                                    className="text-xs font-semibold text-[#6B6690] border border-[#EDEBF6] bg-white px-3 py-1.5 rounded-full hover:bg-[#F6F7FB] transition-colors disabled:opacity-60"
+                                >
+                                    Return to queue
+                                </button>
+                            )}
+                        </form>
+                    )}
+
                     <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5">
                         {showMessages ? (
                             <div className="flex flex-col gap-4">
-                                {conversationMessages.map((m) => (
-                                    <div
-                                        key={m.id}
-                                        className={`flex flex-col ${
-                                            m.mine ? "items-end" : "items-start"
-                                        }`}
-                                    >
-                                        <span className="text-[11px] text-[#9C97BE] mb-1">
-                                            {activeConversation
-                                                ? authorLabel(m, activeConversation)
-                                                : ""}{" "}
-                                            · {m.time}
-                                        </span>
+                                {conversationMessages.map((m) =>
+                                    m.author === "SYSTEM" ? (
+                                        <p
+                                            key={m.id}
+                                            className="self-center max-w-md text-center text-[11px] text-[#9C97BE] px-3 py-1 rounded-full bg-[#F6F7FB]"
+                                        >
+                                            {m.text} · {m.time}
+                                        </p>
+                                    ) : (
                                         <div
-                                            className={`max-w-[85%] sm:max-w-md px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap break-words ${
-                                                m.author === "ASSISTANT"
-                                                    ? "bg-[#FEF4EC] text-[#171139] rounded-bl-sm"
-                                                    : m.mine
-                                                      ? "bg-[#6C4FE0] text-white rounded-br-sm"
-                                                      : "bg-[#F6F7FB] text-[#171139] rounded-bl-sm"
+                                            key={m.id}
+                                            className={`flex flex-col ${
+                                                m.mine
+                                                    ? "items-end"
+                                                    : "items-start"
                                             }`}
                                         >
-                                            {m.text}
+                                            <span className="text-[11px] text-[#9C97BE] mb-1">
+                                                {activeConversation
+                                                    ? authorLabel(
+                                                          m,
+                                                          activeConversation,
+                                                      )
+                                                    : ""}{" "}
+                                                · {m.time}
+                                            </span>
+                                            <div
+                                                className={`max-w-[85%] sm:max-w-md px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap wrap-break-word ${
+                                                    m.author === "ASSISTANT"
+                                                        ? "bg-[#FEF4EC] text-[#171139] rounded-bl-sm"
+                                                        : m.mine
+                                                          ? "bg-[#6C4FE0] text-white rounded-br-sm"
+                                                          : "bg-[#F6F7FB] text-[#171139] rounded-bl-sm"
+                                                }`}
+                                            >
+                                                {m.text}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ),
+                                )}
                                 {pendingText !== null && (
                                     <div className="flex flex-col items-end">
-                                        <div className="max-w-[85%] sm:max-w-md px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap break-words bg-[#6C4FE0] text-white rounded-br-sm opacity-80">
+                                        <div className="max-w-[85%] sm:max-w-md px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap wrap-break-word bg-[#6C4FE0] text-white rounded-br-sm opacity-80">
                                             {pendingText}
                                         </div>
                                     </div>
@@ -447,7 +737,7 @@ export function ChatsPanel({
                                         <span className="text-[11px] text-[#9C97BE] mb-1">
                                             AI Assistant
                                         </span>
-                                        <div className="max-w-[85%] sm:max-w-md px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap break-words bg-[#FEF4EC] text-[#171139] rounded-bl-sm">
+                                        <div className="max-w-[85%] sm:max-w-md px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap wrap-break-word bg-[#FEF4EC] text-[#171139] rounded-bl-sm">
                                             {streamingText || <TypingDots />}
                                         </div>
                                     </div>
@@ -465,9 +755,9 @@ export function ChatsPanel({
                                     </p>
                                     <p className="text-sm text-[#6B6690] mt-1">
                                         You&apos;re chatting with the AI
-                                        assistant. Ask for a human mentor
-                                        at any time and one will join this
-                                        chat.
+                                        assistant. Ask for a human mentor at any
+                                        time and the first available mentor will
+                                        pick up this chat.
                                     </p>
                                 </div>
                                 {!activeConversation && (
@@ -489,9 +779,9 @@ export function ChatsPanel({
                             <div className="h-full flex flex-col items-center justify-center text-center gap-2 px-6">
                                 <HistoryIcon className="w-6 h-6 text-[#9C97BE]" />
                                 <p className="text-sm text-[#6B6690]">
-                                    {currentUserRole === "MENTOR"
-                                        ? "Pick a mentee request or one of your chats from the history."
-                                        : "AI chats are available to mentees."}
+                                    {isMentor
+                                        ? "Pick an open request or one of your chats from the history."
+                                        : "Pick a mentor request to pair the mentee with a mentor, or open an escalated chat."}
                                 </p>
                             </div>
                         )}
@@ -507,8 +797,9 @@ export function ChatsPanel({
                         activeConversation?.status === "ESCALATED" &&
                         !activeConversation.mentorId && (
                             <p className="px-5 py-2 text-xs text-[#9C97BE] border-t border-[#EDEBF6]">
-                                A mentor has been asked to join. You can keep
-                                adding details here in the meantime.
+                                Your request is with our mentors. The first one
+                                available will join — you can keep adding
+                                details here in the meantime.
                             </p>
                         )}
 
@@ -532,7 +823,9 @@ export function ChatsPanel({
                             <button
                                 type="submit"
                                 aria-label="Send message"
-                                disabled={isPending || isStreaming || !draft.trim()}
+                                disabled={
+                                    isPending || isStreaming || !draft.trim()
+                                }
                                 className="w-9 h-9 rounded-full bg-[#6C4FE0] flex items-center justify-center text-white hover:bg-[#5B3FD6] transition-colors shrink-0 disabled:opacity-60"
                             >
                                 <SendIcon className="w-4 h-4" />
@@ -607,7 +900,28 @@ export function ChatsPanel({
                                       ? "Your AI chats will appear here."
                                       : "No mentee requests yet."}
                             </p>
-                        ) : currentUserRole === "MENTOR" ? (
+                        ) : isAdmin ? (
+                            <>
+                                {escalatedChats.length > 0 && (
+                                    <p className="px-3 pt-2 pb-1 text-[11px] font-bold text-[#D14343] uppercase tracking-wide">
+                                        Escalated to admin
+                                    </p>
+                                )}
+                                {escalatedChats.map(renderConversationLink)}
+                                {openRequests.length > 0 && (
+                                    <p className="px-3 pt-3 pb-1 text-[11px] font-bold text-[#9C97BE] uppercase tracking-wide">
+                                        Unassigned
+                                    </p>
+                                )}
+                                {openRequests.map(renderConversationLink)}
+                                {assignedChats.length > 0 && (
+                                    <p className="px-3 pt-3 pb-1 text-[11px] font-bold text-[#9C97BE] uppercase tracking-wide">
+                                        With a mentor
+                                    </p>
+                                )}
+                                {assignedChats.map(renderConversationLink)}
+                            </>
+                        ) : isMentor ? (
                             <>
                                 {openRequests.length > 0 && (
                                     <p className="px-3 pt-2 pb-1 text-[11px] font-bold text-[#9C97BE] uppercase tracking-wide">

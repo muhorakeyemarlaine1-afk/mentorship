@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma"
 
 /**
- * Hands an AI conversation over to a human mentor by opening a ticket: it goes
- * straight to the mentee's matched mentor if they have one, otherwise into the
- * open queue for any mentor to claim.
+ * Hands an AI conversation over to the humans by opening a ticket in the open
+ * queue. Nobody is assigned automatically: any mentor can claim it, or an
+ * admin can pair the mentee with a mentor.
  */
 export async function escalateConversation(conversationId: string) {
     const conversation = await prisma.conversation.findUnique({
@@ -16,39 +16,55 @@ export async function escalateConversation(conversationId: string) {
         conversation.mentee.name ?? conversation.mentee.email ?? "A mentee"
     const topic = conversation.title ? ` about "${conversation.title}"` : ""
 
-    const match = await prisma.mentorMatch.findFirst({
-        where: { menteeId: conversation.menteeId, status: "ACCEPTED" },
-    })
-
     await prisma.conversation.update({
         where: { id: conversationId },
         data: {
             status: "ESCALATED",
             escalatedAt: new Date(),
-            mentorId: match?.mentorId ?? null,
+            mentorId: null,
+            messages: {
+                create: {
+                    author: "SYSTEM",
+                    content: `${menteeName} asked for a human mentor. Waiting for a mentor to pick up this chat.`,
+                },
+            },
         },
     })
 
-    if (match) {
-        await prisma.notification.create({
-            data: {
-                userId: match.mentorId,
-                title: "Mentee requested help",
-                message: `${menteeName} handed over a chat${topic} to you.`,
-            },
-        })
-        return
-    }
-
-    const mentors = await prisma.user.findMany({
-        where: { role: "MENTOR", isActive: true },
+    const staff = await prisma.user.findMany({
+        where: { role: { in: ["MENTOR", "ADMIN"] }, isActive: true },
         select: { id: true },
     })
     await prisma.notification.createMany({
-        data: mentors.map((mentor) => ({
-            userId: mentor.id,
+        data: staff.map((user) => ({
+            userId: user.id,
             title: "New mentor request",
             message: `${menteeName} wants to talk to a mentor${topic}.`,
         })),
     })
+}
+
+/** Records a chat event (claims, assignments, escalations) in the thread. */
+export async function addSystemMessage(conversationId: string, content: string) {
+    await prisma.conversation.update({
+        where: { id: conversationId },
+        data: {
+            updatedAt: new Date(),
+            messages: { create: { author: "SYSTEM", content } },
+        },
+    })
+}
+
+export async function notifyAdmins(title: string, message: string) {
+    const admins = await prisma.user.findMany({
+        where: { role: "ADMIN", isActive: true },
+        select: { id: true },
+    })
+    await prisma.notification.createMany({
+        data: admins.map((admin) => ({ userId: admin.id, title, message })),
+    })
+}
+
+export function displayName(user: { name: string | null; email: string } | null) {
+    return user ? (user.name ?? user.email) : null
 }

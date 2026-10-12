@@ -46,19 +46,21 @@ enum ConversationAuthor {
   MENTEE
   ASSISTANT
   MENTOR
+  ADMIN
+  SYSTEM
 }
 
 model User {
-  id                String   @id @default(cuid())
+  id                String  @id @default(cuid())
   name              String?
-  email             String   @unique
+  email             String  @unique
   password          String
-  role              Role     @default(MENTEE)
+  role              Role    @default(MENTEE)
   title             String?
   bio               String?
   image             String?
-  isActive          Boolean  @default(true)
-  mustResetPassword Boolean  @default(false)
+  isActive          Boolean @default(true)
+  mustResetPassword Boolean @default(false)
 
   passwordResetTokenHash      String?
   passwordResetTokenExpiresAt DateTime?
@@ -76,6 +78,7 @@ model User {
 
   menteeConversations Conversation[] @relation("MenteeConversations")
   mentorConversations Conversation[] @relation("MentorConversations")
+  adminConversations  Conversation[] @relation("AdminConversations")
 }
 
 model MentorshipSession {
@@ -137,21 +140,31 @@ model MentorMatch {
 }
 
 model Conversation {
-  id          String             @id @default(cuid())
-  menteeId    String
-  mentee      User               @relation("MenteeConversations", fields: [menteeId], references: [id], onDelete: Cascade)
-  mentorId    String?
-  mentor      User?              @relation("MentorConversations", fields: [mentorId], references: [id], onDelete: SetNull)
-  title       String?
-  status      ConversationStatus @default(AI_ONLY)
-  escalatedAt DateTime?
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  id                  String             @id @default(cuid())
+  menteeId            String
+  mentee              User               @relation("MenteeConversations", fields: [menteeId], references: [id], onDelete: Cascade)
+  mentorId            String?
+  mentor              User?              @relation("MentorConversations", fields: [mentorId], references: [id], onDelete: SetNull)
+  // Set when an admin joins the chat as a participant.
+  adminId             String?
+  admin               User?              @relation("AdminConversations", fields: [adminId], references: [id], onDelete: SetNull)
+  title               String?
+  status              ConversationStatus @default(AI_ONLY)
+  // When the mentee asked for a human; the chat then sits in the open queue
+  // until a mentor claims it or an admin assigns one.
+  escalatedAt         DateTime?
+  // When the assigned mentor flagged the chat for an admin; cleared once an
+  // admin acts on it.
+  adminEscalatedAt    DateTime?
+  adminEscalationNote String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
   messages ConversationMessage[]
 
   @@index([menteeId])
   @@index([status, mentorId])
+  @@index([adminEscalatedAt])
 }
 
 model ConversationMessage {

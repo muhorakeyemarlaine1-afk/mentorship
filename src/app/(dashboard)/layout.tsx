@@ -20,19 +20,35 @@ export default async function DashboardGroupLayout({
             prisma.notification.count({
                 where: { userId: session.user.id, read: false },
             }),
-            // Chats badge: mentee requests still waiting for a mentor.
+            // Chats badge: for mentors, open requests plus chats assigned to
+            // them they haven't replied to; for admins, chats that need an
+            // admin to step in or pair a mentor.
             session.user.role === "MENTOR"
                 ? prisma.conversation.count({
                       where: {
                           status: "ESCALATED",
                           OR: [
                               { mentorId: null },
-                              { mentorId: session.user.id },
+                              {
+                                  mentorId: session.user.id,
+                                  messages: {
+                                      none: { authorUserId: session.user.id },
+                                  },
+                              },
                           ],
-                          messages: { none: { author: "MENTOR" } },
                       },
                   })
-                : Promise.resolve(0),
+                : session.user.role === "ADMIN"
+                  ? prisma.conversation.count({
+                        where: {
+                            status: "ESCALATED",
+                            OR: [
+                                { mentorId: null },
+                                { adminEscalatedAt: { not: null } },
+                            ],
+                        },
+                    })
+                  : Promise.resolve(0),
             session.user.role === "ADMIN"
                 ? prisma.mentorApplication.count({
                       where: { status: "PENDING" },
