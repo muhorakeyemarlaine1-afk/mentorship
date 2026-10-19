@@ -29,14 +29,23 @@ Format with light Markdown: short paragraphs, numbered or bulleted lists for ste
 You are an AI, not a human mentor. If the mentee needs specialised, sensitive, or ongoing support, remind them they can ask to talk to a human mentor at any time.
 If someone seems to be in crisis or at risk of harm, encourage them to contact local emergency services or a crisis line right away.`
 
+/** Where the reply is up to, shown to the mentee while it streams. */
+export type AssistantStatus = "connecting" | "thinking" | "responding" | "handoff"
+
+/** One line of the newline-delimited JSON stream sent to the chat client. */
+export type AssistantEvent =
+    | { type: "status"; status: AssistantStatus }
+    | { type: "text"; text: string }
+
 /**
- * Streams the assistant's reply as plain text deltas. `signal` is passed to
- * the upstream request so abandoned chats stop generating (and billing).
+ * Streams the assistant's reply as status changes and text deltas. `signal`
+ * is passed to the upstream request so abandoned chats stop generating (and
+ * billing).
  */
 export async function* streamAssistantReply(
     history: AssistantHistoryMessage[],
     signal?: AbortSignal
-): AsyncGenerator<string, void, unknown> {
+): AsyncGenerator<AssistantEvent, void, unknown> {
     if (!openRouter) {
         yield* stubReply(history, signal)
         return
@@ -59,23 +68,30 @@ export async function* streamAssistantReply(
     if (!(Symbol.asyncIterator in stream)) {
         throw new Error("OpenRouter returned a non-streaming response.")
     }
+    let thinking = false
     for await (const chunk of stream) {
         if (signal?.aborted) return
-        const text = chunk.choices[0]?.delta?.content
-        if (text) yield text
+        const delta = chunk.choices[0]?.delta
+        if (delta?.reasoning && !thinking) {
+            thinking = true
+            yield { type: "status", status: "thinking" }
+        }
+        if (delta?.content) yield { type: "text", text: delta.content }
     }
 }
 
 async function* stubReply(
     history: AssistantHistoryMessage[],
     signal?: AbortSignal
-) {
+): AsyncGenerator<AssistantEvent, void, unknown> {
     const last = history.at(-1)?.content ?? ""
     const canned = `Thanks for sharing that — tell me more about what's going on with "${last}". If you'd like, you can ask to talk to a human mentor at any point.`
 
+    yield { type: "status", status: "thinking" }
+    await new Promise((resolve) => setTimeout(resolve, 800))
     for (const word of canned.split(" ")) {
         if (signal?.aborted) return
-        yield word + " "
+        yield { type: "text", text: word + " " }
         await new Promise((resolve) => setTimeout(resolve, 40))
     }
 }

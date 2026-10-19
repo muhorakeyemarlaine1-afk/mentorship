@@ -14,24 +14,30 @@ export function AssistantMessage({
     text,
     label,
     streaming = false,
-    placeholder,
+    status,
 }: {
     text: string
     label: string
     streaming?: boolean
-    /** Shown in place of the body before the first token arrives. */
-    placeholder?: ReactNode
+    /** Live progress line ("Thinking…"), shown below any text so far. */
+    status?: ReactNode
 }) {
     return (
         <div className="flex items-start gap-3 w-full">
             <div className="w-7 h-7 rounded-full bg-[#FEF4EC] text-[#E07830] flex items-center justify-center shrink-0 mt-0.5">
-                <SparkleIcon className="w-3.5 h-3.5" />
+                <SparkleIcon
+                    className={`w-3.5 h-3.5 ${
+                        streaming
+                            ? "animate-spin [animation-duration:2.5s] motion-reduce:animate-none"
+                            : ""
+                    }`}
+                />
             </div>
             <div className="min-w-0 flex-1">
                 <span className="block text-[11px] text-[#9C97BE] mb-1">
                     {label}
                 </span>
-                {text ? (
+                {text && (
                     <Streamdown
                         mode={streaming ? "streaming" : "static"}
                         isAnimating={streaming}
@@ -40,9 +46,8 @@ export function AssistantMessage({
                     >
                         {text}
                     </Streamdown>
-                ) : (
-                    placeholder
                 )}
+                {status && <div className={text ? "mt-2" : ""}>{status}</div>}
             </div>
         </div>
     )

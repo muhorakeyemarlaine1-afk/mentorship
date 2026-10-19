@@ -8,6 +8,7 @@ import {
     suggestConversationTitle,
     wantsHumanMentor,
     errorMessage,
+    type AssistantEvent,
     type AssistantHistoryMessage,
 } from "@/lib/ai/assistant"
 
@@ -17,8 +18,9 @@ const HANDOFF_REPLY =
 const ERROR_REPLY =
     "Sorry, I'm having trouble responding right now. Please try again in a moment, or ask to talk to a human mentor."
 
-async function* staticReply(text: string) {
-    yield text
+async function* handoffReply(): AsyncGenerator<AssistantEvent> {
+    yield { type: "status", status: "handoff" }
+    yield { type: "text", text: HANDOFF_REPLY }
 }
 
 export async function POST(
@@ -110,22 +112,30 @@ export async function POST(
     const encoder = new TextEncoder()
     let full = ""
 
+    // Newline-delimited JSON, so the client can show status changes
+    // (connecting, thinking, responding) alongside the text.
     const stream = new ReadableStream<Uint8Array>({
         async start(controller) {
+            const send = (event: AssistantEvent) =>
+                controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"))
             try {
+                send({ type: "status", status: "connecting" })
                 const reply = handOff
-                    ? staticReply(HANDOFF_REPLY)
+                    ? handoffReply()
                     : streamAssistantReply(history, req.signal)
-                for await (const chunk of reply) {
-                    full += chunk
-                    controller.enqueue(encoder.encode(chunk))
+                for await (const event of reply) {
+                    if (event.type === "text") {
+                        if (!full) send({ type: "status", status: "responding" })
+                        full += event.text
+                    }
+                    send(event)
                 }
             } catch (err) {
                 if (!req.signal.aborted) {
                     console.error("Assistant reply failed:", errorMessage(err))
                     if (!full.trim()) {
                         full = ERROR_REPLY
-                        controller.enqueue(encoder.encode(ERROR_REPLY))
+                        send({ type: "text", text: ERROR_REPLY })
                     }
                 }
             } finally {
@@ -154,7 +164,7 @@ export async function POST(
 
     return new Response(stream, {
         headers: {
-            "Content-Type": "text/plain; charset=utf-8",
+            "Content-Type": "application/x-ndjson; charset=utf-8",
             "Cache-Control": "no-store",
         },
     })

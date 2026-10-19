@@ -153,3 +153,37 @@
 .story-track:hover {
     animation-play-state: paused;
 }
+
+/* A highlight sweeping across the AI chat's status text ("Thinking…"),
+   the same cue Claude uses to show work in progress. */
+@keyframes status-shimmer {
+    0% {
+        background-position: 100% 0;
+    }
+    100% {
+        background-position: -100% 0;
+    }
+}
+
+.status-shimmer {
+    background: linear-gradient(
+        90deg,
+        #9c97be 0%,
+        #9c97be 40%,
+        #171139 50%,
+        #9c97be 60%,
+        #9c97be 100%
+    );
+    background-size: 200% 100%;
+    background-clip: text;
+    color: transparent;
+    animation: status-shimmer 1.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .status-shimmer {
+        animation: none;
+        background: none;
+        color: #6b6690;
+    }
+}

@@ -17,6 +17,7 @@ import {
     startConversationAction,
 } from "@/actions/conversations"
 import { AssistantMessage } from "@/components/dashboard/AssistantMessage"
+import type { AssistantEvent, AssistantStatus } from "@/lib/ai/assistant"
 import {
     HistoryIcon,
     PlusIcon,
@@ -26,6 +27,7 @@ import {
     UserIcon,
     XIcon,
 } from "@/components/dashboard/icons"
+import { titleCase } from "@/lib/utils"
 
 export interface ConversationSummary {
     id: string
@@ -130,22 +132,34 @@ function createTypewriter(onUpdate: (text: string) => void) {
     }
 }
 
-function TypingDots() {
-    return (
-        <span
-            role="status"
-            aria-label="AI Assistant is typing"
-            className="flex items-center gap-1 h-5"
-        >
-            {[0, 150, 300].map((delay) => (
-                <span
-                    key={delay}
-                    className="w-1.5 h-1.5 rounded-full bg-[#E07830] animate-bounce motion-reduce:animate-pulse"
-                    style={{ animationDelay: `${delay}ms` }}
-                />
-            ))}
-        </span>
-    )
+type StreamStatus = "sending" | AssistantStatus
+
+const STATUS_LABELS: Record<StreamStatus, string> = {
+    sending: "Sending",
+    connecting: "Connecting",
+    thinking: "Thinking",
+    responding: "Responding",
+    handoff: "Connecting you to a mentor",
+}
+
+/** What the assistant is doing right now, with a timer once thinking runs long. */
+function StreamStatusLine({ status }: { status: StreamStatus }) {
+    const [seconds, setSeconds] = useState(0)
+
+    useEffect(() => {
+        if (status !== "thinking") return
+        const started = Date.now()
+        const timer = setInterval(
+            () => setSeconds(Math.floor((Date.now() - started) / 1000)),
+            1000,
+        )
+        return () => {
+            clearInterval(timer)
+            setSeconds(0)
+        }
+    }, [status])
+
+    return `${STATUS_LABELS[status]}…`
 }
 
 function authorLabel(m: ConversationMessageView, c: ConversationSummary) {
@@ -180,6 +194,7 @@ export function ChatsPanel({
     const [pendingText, setPendingText] = useState<string | null>(null)
     const [streamingText, setStreamingText] = useState("")
     const [isStreaming, setIsStreaming] = useState(false)
+    const [streamStatus, setStreamStatus] = useState<StreamStatus>("sending")
     const [escalateOpen, setEscalateOpen] = useState(false)
     const [escalationNote, setEscalationNote] = useState("")
     const [selectedMentorId, setSelectedMentorId] = useState("")
@@ -241,6 +256,7 @@ export function ChatsPanel({
 
     async function sendToAi(content: string) {
         setIsStreaming(true)
+        setStreamStatus("sending")
         setPendingText(content)
         setStreamingText("")
 
@@ -273,11 +289,25 @@ export function ChatsPanel({
             const decoder = new TextDecoder()
             const typewriter = createTypewriter(setStreamingText)
             let acc = ""
+            let buffered = ""
+            // The reply is newline-delimited JSON events; a chunk can end
+            // mid-line, so keep the trailing partial line for the next read.
             while (true) {
                 const { done, value } = await reader.read()
                 if (done) break
-                acc += decoder.decode(value, { stream: true })
-                typewriter.push(acc)
+                buffered += decoder.decode(value, { stream: true })
+                const lines = buffered.split("\n")
+                buffered = lines.pop() ?? ""
+                for (const line of lines) {
+                    if (!line.trim()) continue
+                    const event = JSON.parse(line) as AssistantEvent
+                    if (event.type === "status") {
+                        setStreamStatus(event.status)
+                    } else {
+                        acc += event.text
+                        typewriter.push(acc)
+                    }
+                }
             }
             await typewriter.finish()
         } finally {
@@ -747,9 +777,8 @@ export function ChatsPanel({
                                 {isStreaming && (
                                     <AssistantMessage
                                         text={streamingText}
-                                        label="AI Assistant"
+                                        label={`AI Assistant · ${titleCase(streamStatus)}...`}
                                         streaming
-                                        placeholder={<TypingDots />}
                                     />
                                 )}
                                 <div ref={bottomRef} />
