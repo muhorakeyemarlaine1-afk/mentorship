@@ -16,6 +16,7 @@ import {
     returnToQueueAction,
     startConversationAction,
 } from "@/actions/conversations"
+import { AssistantMessage } from "@/components/dashboard/AssistantMessage"
 import {
     HistoryIcon,
     PlusIcon,
@@ -693,6 +694,19 @@ export function ChatsPanel({
                                         >
                                             {m.text} · {m.time}
                                         </p>
+                                    ) : m.author === "ASSISTANT" ? (
+                                        <AssistantMessage
+                                            key={m.id}
+                                            text={m.text}
+                                            label={`${
+                                                activeConversation
+                                                    ? authorLabel(
+                                                          m,
+                                                          activeConversation,
+                                                      )
+                                                    : "AI Assistant"
+                                            } · ${m.time}`}
+                                        />
                                     ) : (
                                         <div
                                             key={m.id}
@@ -713,11 +727,9 @@ export function ChatsPanel({
                                             </span>
                                             <div
                                                 className={`max-w-[85%] sm:max-w-md px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap wrap-break-word ${
-                                                    m.author === "ASSISTANT"
-                                                        ? "bg-[#FEF4EC] text-[#171139] rounded-bl-sm"
-                                                        : m.mine
-                                                          ? "bg-[#6C4FE0] text-white rounded-br-sm"
-                                                          : "bg-[#F6F7FB] text-[#171139] rounded-bl-sm"
+                                                    m.mine
+                                                        ? "bg-[#6C4FE0] text-white rounded-br-sm"
+                                                        : "bg-[#F6F7FB] text-[#171139] rounded-bl-sm"
                                                 }`}
                                             >
                                                 {m.text}
@@ -733,14 +745,12 @@ export function ChatsPanel({
                                     </div>
                                 )}
                                 {isStreaming && (
-                                    <div className="flex flex-col items-start">
-                                        <span className="text-[11px] text-[#9C97BE] mb-1">
-                                            AI Assistant
-                                        </span>
-                                        <div className="max-w-[85%] sm:max-w-md px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap wrap-break-word bg-[#FEF4EC] text-[#171139] rounded-bl-sm">
-                                            {streamingText || <TypingDots />}
-                                        </div>
-                                    </div>
+                                    <AssistantMessage
+                                        text={streamingText}
+                                        label="AI Assistant"
+                                        streaming
+                                        placeholder={<TypingDots />}
+                                    />
                                 )}
                                 <div ref={bottomRef} />
                             </div>
