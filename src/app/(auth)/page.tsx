@@ -478,10 +478,22 @@ const STORY_CYCLE_SECONDS = 18
 const TESTIMONIAL_PAGES_LOOPED = [...TESTIMONIAL_PAGES, ...TESTIMONIAL_PAGES]
 
 const STATS = [
-    { value: "12,400+", label: "Youth Mentored" },
-    { value: "1,117", label: "Expert Mentors" },
-    { value: "10", label: "Focus Areas" },
-    { value: "44", label: "Countries" },
+    {
+        value: "250+",
+        label: "Youth Mentored",
+    },
+    {
+        value: "50",
+        label: "Expert Mentors",
+    },
+    {
+        value: "20",
+        label: "Businesses Launched",
+    },
+    {
+        value: "5",
+        label: "Careers Started",
+    },
 ]
 
 export default function App() {
@@ -495,9 +507,7 @@ export default function App() {
         setStoryRestart((s) => ({ key: s.key + 1, page }))
 
     return (
-        <div
-            className="bg-white text-[#0D1F3C]"
-        >
+        <div className="bg-white text-[#0D1F3C]">
             {/* ── NAV ─────────────────────────────────────────────────── */}
             <Navbar />
 
@@ -518,7 +528,6 @@ export default function App() {
                 <div className="relative max-w-7xl mx-auto px-6 flex-1 flex items-center py-20">
                     <div className="grid lg:grid-cols-2 gap-16 items-center w-full">
                         <div>
-                            
                             <h1 className="text-5xl md:text-6xl xl:text-7xl font-extrabold text-white leading-[1.05] tracking-tight mb-6">
                                 Empowering
                                 <br />
@@ -531,9 +540,7 @@ export default function App() {
                                 at a time
                             </h1>
 
-                            <p
-                                className="text-blue-200 text-lg leading-relaxed mb-10 max-w-lg"
-                            >
+                            <p className="text-blue-200 text-lg leading-relaxed mb-10 max-w-lg">
                                 Global Youth Emerge connects young people aged
                                 15-34 with expert mentors across 10
                                 life-changing fields — completely free.
@@ -578,9 +585,7 @@ export default function App() {
                                         <div className="text-2xl font-extrabold text-white">
                                             {stat.value}
                                         </div>
-                                        <div
-                                            className="text-blue-300 text-xs mt-0.5"
-                                        >
+                                        <div className="text-blue-300 text-xs mt-0.5">
                                             {stat.label}
                                         </div>
                                     </div>
@@ -652,9 +657,7 @@ export default function App() {
                             best future self
                         </h2>
                     </div>
-                    <p
-                        className="text-[#6B84A3] text-base max-w-sm md:text-right"
-                    >
+                    <p className="text-[#6B84A3] text-base max-w-sm md:text-right">
                         Whatever direction you want to grow — we have mentors
                         who have been exactly where you are.
                     </p>
@@ -719,9 +722,7 @@ export default function App() {
                                 {cat.tagline}
                             </div>
                             {activeCategory === cat.id && (
-                                <p
-                                    className="text-white/85 text-xs leading-relaxed mb-3"
-                                >
+                                <p className="text-white/85 text-xs leading-relaxed mb-3">
                                     {cat.desc}
                                 </p>
                             )}
@@ -768,9 +769,7 @@ export default function App() {
                                 <h3 className="text-xl font-bold text-[#0D1F3C] mb-3">
                                     {step.title}
                                 </h3>
-                                <p
-                                    className="text-[#6B84A3] leading-relaxed text-sm"
-                                >
+                                <p className="text-[#6B84A3] leading-relaxed text-sm">
                                     {step.desc}
                                 </p>
                                 {i < STEPS.length - 1 && (
@@ -922,14 +921,11 @@ export default function App() {
                                 <br />
                                 real numbers
                             </h2>
-                            <p
-                                className="text-blue-200 text-lg leading-relaxed mb-10"
-                            >
+                            <p className="text-blue-200 text-lg leading-relaxed mb-10">
                                 GYE Mentorship isn&apos;t just a platform —
-                                it&apos;s a
-                                movement. Thousands of young people have already
-                                changed the trajectory of their lives with one
-                                good mentor.
+                                it&apos;s a movement. Thousands of young people
+                                have already changed the trajectory of their
+                                lives with one good mentor.
                             </p>
                             <div className="space-y-5">
                                 {[
@@ -960,9 +956,7 @@ export default function App() {
                                 ].map((item) => (
                                     <div key={item.label}>
                                         <div className="flex justify-between mb-1.5">
-                                            <span
-                                                className="text-blue-200 text-sm"
-                                            >
+                                            <span className="text-blue-200 text-sm">
                                                 {item.label}
                                             </span>
                                             <span className="font-bold text-white text-sm">
@@ -995,9 +989,7 @@ export default function App() {
                                 <div className="text-3xl font-extrabold text-[#1B4B8A]">
                                     94%
                                 </div>
-                                <p
-                                    className="text-[#6B84A3] text-xs mt-1 max-w-35"
-                                >
+                                <p className="text-[#6B84A3] text-xs mt-1 max-w-35">
                                     of mentees report a positive life change
                                     within 3 months
                                 </p>
@@ -1006,19 +998,17 @@ export default function App() {
                                 <div className="text-2xl font-extrabold text-white">
                                     44
                                 </div>
-                                <p
-                                    className="text-white/80 text-xs mt-0.5"
-                                >
+                                <p className="text-white/80 text-xs mt-0.5">
                                     Countries
                                 </p>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section> 
+            </section>
 
             {/* ── TESTIMONIALS ─────────────────────────────────────────── */}
-             <section id="stories" className="py-24 max-w-7xl mx-auto px-6">
+            <section id="stories" className="py-24 max-w-7xl mx-auto px-6">
                 <div className="mb-14 flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
                         <div className="text-[#E07830] text-sm font-bold uppercase tracking-widest mb-3">
