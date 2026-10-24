@@ -919,61 +919,35 @@ export default function App() {
                             <h2 className="text-4xl font-extrabold text-white leading-tight mb-6">
                                 Real change,
                                 <br />
-                                real numbers
+                                real lives
                             </h2>
-                            <p className="text-blue-200 text-lg leading-relaxed mb-10">
+                            <p className="text-blue-200 text-lg leading-relaxed mb-6">
                                 GYE Mentorship isn&apos;t just a platform —
                                 it&apos;s a movement. Thousands of young people
                                 have already changed the trajectory of their
                                 lives with one good mentor.
                             </p>
-                            <div className="space-y-5">
-                                {[
-                                    {
-                                        label: "Scholarship recipients",
-                                        value: "3,200+",
-                                        color: "#E07830",
-                                        pct: 82,
-                                    },
-                                    {
-                                        label: "Youth-led businesses launched",
-                                        value: "890+",
-                                        color: "#60A5FA",
-                                        pct: 65,
-                                    },
-                                    {
-                                        label: "Tech careers started",
-                                        value: "2,100+",
-                                        color: "#34D399",
-                                        pct: 78,
-                                    },
-                                    {
-                                        label: "Report positive life change",
-                                        value: "94%",
-                                        color: "#FBBF24",
-                                        pct: 94,
-                                    },
-                                ].map((item) => (
-                                    <div key={item.label}>
-                                        <div className="flex justify-between mb-1.5">
-                                            <span className="text-blue-200 text-sm">
-                                                {item.label}
-                                            </span>
-                                            <span className="font-bold text-white text-sm">
-                                                {item.value}
-                                            </span>
-                                        </div>
-                                        <div className="h-1.5 rounded-full bg-white/10">
-                                            <div
-                                                className="h-full rounded-full transition-all"
-                                                style={{
-                                                    width: `${item.pct}%`,
-                                                    backgroundColor: item.color,
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
+                            <div className="space-y-5 text-blue-200 text-base leading-relaxed">
+                                <p>
+                                    Every mentorship on GYE starts with a simple
+                                    conversation, and grows into guidance that
+                                    opens doors. Mentees have gone on to win
+                                    scholarships, launch their own businesses,
+                                    and step into careers in tech and beyond.
+                                </p>
+                                <p>
+                                    But the impact goes deeper than milestones.
+                                    Young people tell us they leave with more
+                                    confidence, clearer goals, and a network of
+                                    people who believe in them. Mentors, in
+                                    turn, find purpose in passing on what they
+                                    have learned.
+                                </p>
+                                <p>
+                                    Together, we are building a community where
+                                    every young person, wherever they are, has
+                                    someone in their corner.
+                                </p>
                             </div>
                         </div>
 
@@ -984,23 +958,6 @@ export default function App() {
                                     alt="Global Youth Emerge impact"
                                     className="w-full h-full object-cover opacity-85"
                                 />
-                            </div>
-                            <div className="absolute -bottom-5 -left-5 bg-white rounded-2xl shadow-xl p-5 border border-[#E2EAF4]">
-                                <div className="text-3xl font-extrabold text-[#1B4B8A]">
-                                    94%
-                                </div>
-                                <p className="text-[#6B84A3] text-xs mt-1 max-w-35">
-                                    of mentees report a positive life change
-                                    within 3 months
-                                </p>
-                            </div>
-                            <div className="absolute -top-5 -right-5 bg-[#E07830] rounded-2xl shadow-xl p-4">
-                                <div className="text-2xl font-extrabold text-white">
-                                    44
-                                </div>
-                                <p className="text-white/80 text-xs mt-0.5">
-                                    Countries
-                                </p>
                             </div>
                         </div>
                     </div>
