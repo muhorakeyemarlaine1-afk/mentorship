@@ -231,11 +231,14 @@ export function ChatsPanel({
         (c) => !c.needsAdmin && !c.isOpenQueueItem,
     )
 
-    // Mentees always talk to the AI unless the chat was handed to a mentor;
-    // a brand new chat (no conversation yet) is created on first send.
+    // Mentees talk to the AI until a mentor or admin joins the chat, even
+    // while a request for a human is waiting in the queue; a brand new chat
+    // (no conversation yet) is created on first send.
     const talkingToAi =
         isMentee &&
-        (!activeConversation || activeConversation.status === "AI_ONLY")
+        (!activeConversation ||
+            activeConversation.status === "AI_ONLY" ||
+            (!activeConversation.mentorId && !activeConversation.adminId))
 
     const canCompose =
         isMentee ||
@@ -834,11 +837,11 @@ export function ChatsPanel({
 
                     {isMentee &&
                         activeConversation?.status === "ESCALATED" &&
-                        !activeConversation.mentorId && (
+                        talkingToAi && (
                             <p className="px-5 py-2 text-xs text-[#9C97BE] border-t border-[#EDEBF6]">
                                 Your request is with our mentors. The first one
-                                available will join — you can keep adding
-                                details here in the meantime.
+                                available will join — you can keep chatting with
+                                the AI assistant in the meantime.
                             </p>
                         )}
 

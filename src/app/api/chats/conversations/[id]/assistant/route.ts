@@ -18,9 +18,12 @@ const HANDOFF_REPLY =
 const ERROR_REPLY =
     "Sorry, I'm having trouble responding right now. Please try again in a moment, or ask to talk to a human mentor."
 
-async function* handoffReply(): AsyncGenerator<AssistantEvent> {
+const ALREADY_REQUESTED_REPLY =
+    "Your request for a human mentor is already in — the first available mentor will join this chat soon. In the meantime, I'm happy to keep helping."
+
+async function* handoffReply(text: string): AsyncGenerator<AssistantEvent> {
     yield { type: "status", status: "handoff" }
-    yield { type: "text", text: HANDOFF_REPLY }
+    yield { type: "text", text }
 }
 
 export async function POST(
@@ -49,9 +52,11 @@ export async function POST(
             { status: 403 }
         )
     }
-    if (conversation.status !== "AI_ONLY") {
+    // After asking for a human, the mentee keeps the AI until someone joins.
+    const humanJoined = !!conversation.mentorId || !!conversation.adminId
+    if (conversation.status !== "AI_ONLY" && humanJoined) {
         return Response.json(
-            { error: "This chat has been escalated to a mentor." },
+            { error: "A mentor has joined this chat." },
             { status: 409 }
         )
     }
@@ -102,8 +107,9 @@ export async function POST(
             )
             .catch(() => null)
 
+    const alreadyEscalated = conversation.status === "ESCALATED"
     const handOff = wantsHumanMentor(content)
-    if (handOff) {
+    if (handOff && !alreadyEscalated) {
         await savePromise
         await titlePromise
         await escalateConversation(conversationId)
@@ -121,7 +127,9 @@ export async function POST(
             try {
                 send({ type: "status", status: "connecting" })
                 const reply = handOff
-                    ? handoffReply()
+                    ? handoffReply(
+                          alreadyEscalated ? ALREADY_REQUESTED_REPLY : HANDOFF_REPLY
+                      )
                     : streamAssistantReply(history, req.signal)
                 for await (const event of reply) {
                     if (event.type === "text") {

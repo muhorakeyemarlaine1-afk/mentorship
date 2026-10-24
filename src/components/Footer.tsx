@@ -6,7 +6,7 @@ const LOGO_URL =
 
 const FOOTER_LINKS = [
     { label: "Home", href: "/" },
-    { label: "Our Mentors", href: "/our-mentors" },
+    { label: "Explore Mentorship", href: "/explore-mentorship" },
     { label: "How It Works", href: "/how-it-works" },
     { label: "Join Us", href: "/get-started" },
 ]
