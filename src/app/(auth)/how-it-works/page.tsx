@@ -382,7 +382,7 @@ export default function HowItWorksPage() {
             {/* ── TESTIMONIALS ─────────────────────────────────────────── */}
             <section className="py-16 md:py-20 max-w-7xl mx-auto px-6">
                 <h2 className="text-3xl md:text-4xl font-extrabold text-[#0D2B5E] text-center mb-10">
-                    What Young People Are Saying
+                    What Youths Gain Form Our Mentorships
                 </h2>
                 <div className="grid md:grid-cols-3 gap-6">
                     {TESTIMONIALS.map((t) => (

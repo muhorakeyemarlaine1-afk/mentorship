@@ -108,8 +108,8 @@ const BENEFITS = [
 ]
 
 const STATS = [
-    { value: "12,000", suffix: "+", label: "Active mentees" },
-    { value: "8,500", suffix: "+", label: "Mentors" },
+    { value: "250", suffix: "+", label: "Active mentees" },
+    { value: "50", suffix: "+", label: "Mentors" },
     { value: "85", suffix: "%", label: "Report increased confidence" },
     { value: "72", suffix: "%", label: "Achieved career or education goals" },
 ]
