@@ -1,3 +1,4 @@
+import { after } from "next/server"
 import nodemailer, { type Transporter } from "nodemailer"
 
 let transporter: Transporter | null = null
@@ -60,51 +61,67 @@ function escapeHtml(value: string) {
         .replace(/'/g, "&#39;")
 }
 
-export async function sendMentorApplicationEmail(
-    to: string[],
-    application: {
-        name: string
-        email: string
-        currentRole: string | null
-        organization: string | null
-        category: string | null
-        yearsExperience: string | null
-        motivation: string | null
-        linkedin: string | null
-    },
-    reviewUrl: string
-) {
-    const details = [
-        ["Name", application.name],
-        ["Email", application.email],
-        ["Current role", application.currentRole],
-        ["Organization", application.organization],
-        ["Category", application.category],
-        ["Experience", application.yearsExperience],
-        ["LinkedIn", application.linkedin],
-        ["Motivation", application.motivation],
-    ].filter((row): row is [string, string] => Boolean(row[1]))
+export function appUrl(path: string) {
+    const base = process.env.APP_URL || "http://localhost:3000"
+    return `${base.replace(/\/$/, "")}${path}`
+}
 
-    // Every value here comes from a public form, so it's escaped and never
-    // used as a link target.
-    await sendEmail({
-        to: to.join(", "),
-        subject: `New mentor application: ${application.name}`,
-        text: `${application.name} applied to become a mentor.\n\n${details
-            .map(([label, value]) => `${label}: ${value}`)
-            .join("\n")}\n\nReview the application: ${reviewUrl}`,
-        html: `
-            <p>${escapeHtml(application.name)} applied to become a mentor.</p>
-            <ul>
-                ${details
-                    .map(
-                        ([label, value]) =>
-                            `<li><strong>${label}:</strong> ${escapeHtml(value)}</li>`
-                    )
-                    .join("")}
-            </ul>
-            <p><a href="${reviewUrl}">Review the application</a></p>
-        `,
+export interface EmailContent {
+    subject: string
+    lines: string[]
+    action?: { label: string; path: string }
+}
+
+// Lines often hold text from users or public forms, so they're always escaped.
+function renderEmail({ lines, action }: EmailContent) {
+    const url = action ? appUrl(action.path) : null
+    const signOff = "Global Youth Emerge"
+
+    return {
+        text: [
+            ...lines,
+            ...(action ? [`${action.label}: ${url}`] : []),
+            signOff,
+        ].join("\n\n"),
+        html: [
+            ...lines.map(
+                (line) =>
+                    `<p>${escapeHtml(line).replace(/\n/g, "<br>")}</p>`
+            ),
+            ...(action
+                ? [`<p><a href="${escapeHtml(url!)}">${escapeHtml(action.label)}</a></p>`]
+                : []),
+            `<p>${signOff}</p>`,
+        ].join("\n"),
+    }
+}
+
+/** Sends now and reports whether it worked, for callers with a fallback. */
+export async function trySendEmail(to: string, content: EmailContent) {
+    if (!isEmailConfigured()) return false
+
+    try {
+        await sendEmail({ to, subject: content.subject, ...renderEmail(content) })
+        return true
+    } catch (error) {
+        console.error(`Failed to send email: ${content.subject}`, error)
+        return false
+    }
+}
+
+/**
+ * Sends after the response, so a slow mail server can't hold up the request
+ * and a failure can't undo work that's already saved. Each address gets its
+ * own message, one at a time, so recipients never see each other.
+ */
+export function queueEmail(to: string | string[], content: EmailContent) {
+    const recipients = [to].flat()
+    if (recipients.length === 0 || !isEmailConfigured()) return
+
+    after(async () => {
+        for (const recipient of recipients) {
+            await trySendEmail(recipient, content)
+        }
     })
 }
 

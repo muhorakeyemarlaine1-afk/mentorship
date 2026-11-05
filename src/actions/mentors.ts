@@ -8,6 +8,17 @@ import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/require-admin"
 import { logAudit } from "@/lib/audit"
 import { deleteProfileImage } from "@/lib/r2"
+import { queueEmail } from "@/lib/mail"
+import {
+    accountStatusEmail,
+    emailChangedEmail,
+    inviteEmail,
+} from "@/lib/emails"
+import {
+    CLEAR_PASSWORD_TOKEN,
+    INVITE_TOKEN_TTL_MS,
+    createPasswordToken,
+} from "@/lib/password-tokens"
 import {
     createMentorSchema,
     updateMentorSchema,
@@ -47,6 +58,15 @@ export async function createMentorAction(values: CreateMentorInput) {
 
     await logAudit(session.user, "Created mentor", "Mentor", mentor.id, mentor.email)
 
+    queueEmail(
+        mentor.email,
+        inviteEmail(
+            mentor.name,
+            "MENTOR",
+            await createPasswordToken(mentor.id, INVITE_TOKEN_TTL_MS)
+        )
+    )
+
     revalidatePath("/mentors")
     redirect(`/mentors/${mentor.id}`)
 }
@@ -71,8 +91,9 @@ export async function updateMentorAction(
 
     const current = await prisma.user.findFirst({
         where: { id, role: "MENTOR" },
-        select: { image: true },
+        select: { image: true, email: true },
     })
+    const emailChanged = current && current.email !== parsed.data.email
 
     const data: {
         name: string
@@ -92,8 +113,12 @@ export async function updateMentorAction(
 
     await prisma.user.updateMany({
         where: { id, role: "MENTOR" },
-        data,
+        data: { ...data, ...(emailChanged ? CLEAR_PASSWORD_TOKEN : {}) },
     })
+
+    if (emailChanged) {
+        queueEmail(current.email, emailChangedEmail(parsed.data.email))
+    }
 
     if (data.image !== undefined && current?.image && current.image !== data.image) {
         await deleteProfileImage(current.image)
@@ -109,10 +134,18 @@ export async function updateMentorAction(
 export async function setMentorActiveAction(id: string, isActive: boolean) {
     const session = await requireAdmin()
 
-    await prisma.user.updateMany({
-        where: { id, role: "MENTOR" },
+    const { count } = await prisma.user.updateMany({
+        where: { id, role: "MENTOR", isActive: !isActive },
         data: { isActive },
     })
+
+    if (count > 0) {
+        const user = await prisma.user.findUnique({
+            where: { id },
+            select: { email: true },
+        })
+        if (user) queueEmail(user.email, accountStatusEmail(isActive))
+    }
 
     await logAudit(
         session.user,

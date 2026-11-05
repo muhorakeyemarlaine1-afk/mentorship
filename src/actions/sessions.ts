@@ -6,10 +6,30 @@ import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/require-admin"
 import { logAudit } from "@/lib/audit"
+import { formatSessionTime, notifyUsers } from "@/lib/notify"
 import {
     createSessionSchema,
     type CreateSessionInput,
 } from "@/lib/validations/session"
+
+const SESSION_PARTICIPANTS = {
+    mentor: { select: { name: true, email: true } },
+    mentee: { select: { name: true, email: true } },
+}
+
+const STATUS_NOTICES = {
+    SCHEDULED: { title: "Session back on", outcome: "is back on the schedule" },
+    COMPLETED: { title: "Session completed", outcome: "was marked as completed" },
+    CANCELLED: { title: "Session cancelled", outcome: "was cancelled" },
+}
+
+function describeSession(session: {
+    scheduledAt: Date
+    mentor: { name: string | null; email: string }
+    mentee: { name: string | null; email: string }
+}) {
+    return `The session between ${session.mentor.name ?? session.mentor.email} and ${session.mentee.name ?? session.mentee.email} on ${formatSessionTime(session.scheduledAt)}`
+}
 
 export async function createSessionAction(values: CreateSessionInput) {
     const session = await requireAdmin()
@@ -46,12 +66,11 @@ export async function createSessionAction(values: CreateSessionInput) {
         },
     })
 
-    await prisma.notification.createMany({
-        data: [mentor.id, mentee.id].map((userId) => ({
-            userId,
-            title: "New session scheduled",
-            message: `A session between ${mentor.name ?? mentor.email} and ${mentee.name ?? mentee.email} was scheduled.`,
-        })),
+    await notifyUsers([mentor.id, mentee.id], {
+        title: "New session scheduled",
+        message: `A ${created.durationMinutes}-minute session between ${mentor.name ?? mentor.email} and ${mentee.name ?? mentee.email} was scheduled for ${formatSessionTime(scheduledAt)}.`,
+        path: `/sessions/${created.id}`,
+        actionLabel: "View session",
     })
 
     await logAudit(session.user, "Scheduled session", "Session", created.id)
@@ -66,10 +85,26 @@ export async function setSessionStatusAction(
 ) {
     const session = await requireAdmin()
 
-    await prisma.mentorshipSession.update({
+    const current = await prisma.mentorshipSession.findUnique({
+        where: { id },
+        select: { status: true },
+    })
+
+    const updated = await prisma.mentorshipSession.update({
         where: { id },
         data: { status },
+        include: SESSION_PARTICIPANTS,
     })
+
+    if (current?.status !== status) {
+        const { title, outcome } = STATUS_NOTICES[status]
+        await notifyUsers([updated.mentorId, updated.menteeId], {
+            title,
+            message: `${describeSession(updated)} ${outcome}.`,
+            path: `/sessions/${id}`,
+            actionLabel: "View session",
+        })
+    }
 
     await logAudit(
         session.user,
@@ -85,8 +120,21 @@ export async function setSessionStatusAction(
 export async function deleteSessionAction(id: string) {
     const session = await requireAdmin()
 
-    await prisma.mentorshipSession.delete({ where: { id } })
+    const deleted = await prisma.mentorshipSession.delete({
+        where: { id },
+        include: SESSION_PARTICIPANTS,
+    })
     await logAudit(session.user, "Deleted session", "Session", id)
+
+    // Deleting an upcoming session cancels it for the people attending.
+    if (deleted.status === "SCHEDULED" && deleted.scheduledAt > new Date()) {
+        await notifyUsers([deleted.mentorId, deleted.menteeId], {
+            title: STATUS_NOTICES.CANCELLED.title,
+            message: `${describeSession(deleted)} ${STATUS_NOTICES.CANCELLED.outcome}.`,
+            path: "/sessions",
+            actionLabel: "View sessions",
+        })
+    }
 
     revalidatePath("/sessions")
     redirect("/sessions")

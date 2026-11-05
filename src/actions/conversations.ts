@@ -5,12 +5,35 @@ import { revalidatePath } from "next/cache"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { logAudit } from "@/lib/audit"
+import { notifyUsers } from "@/lib/notify"
 import {
     addSystemMessage,
+    chatPath,
     displayName,
     escalateConversation,
     notifyAdmins,
 } from "@/lib/conversations"
+
+// Chats can move fast, so the other participants hear about a new message only
+// when the sender starts talking again after a pause and they aren't active.
+const MESSAGE_QUIET_PERIOD_MS = 15 * 60 * 1000
+
+async function notifyChat(
+    conversationId: string,
+    userIds: (string | null)[],
+    title: string,
+    message: string
+) {
+    await notifyUsers(
+        userIds.filter((id): id is string => !!id),
+        {
+            title,
+            message,
+            path: chatPath(conversationId),
+            actionLabel: "Open the chat",
+        }
+    )
+}
 
 export async function startConversationAction() {
     const session = await auth()
@@ -69,6 +92,17 @@ export async function postHumanMessageAction(
         }
     }
 
+    const recentlyActive = await prisma.conversationMessage.findMany({
+        where: {
+            conversationId,
+            authorUserId: { not: null },
+            createdAt: { gte: new Date(Date.now() - MESSAGE_QUIET_PERIOD_MS) },
+        },
+        select: { authorUserId: true },
+        distinct: ["authorUserId"],
+    })
+    const activeUserIds = recentlyActive.map((m) => m.authorUserId)
+
     await prisma.conversationMessage.create({
         data: {
             conversationId,
@@ -81,6 +115,19 @@ export async function postHumanMessageAction(
         where: { id: conversationId },
         data: { updatedAt: new Date() },
     })
+
+    if (!activeUserIds.includes(session.user.id)) {
+        const senderName = session.user.name ?? session.user.email ?? "Someone"
+        // The message itself stays out of the email: it's read after signing in.
+        await notifyChat(
+            conversationId,
+            [conversation.menteeId, conversation.mentorId, conversation.adminId].filter(
+                (id) => id !== session.user.id && !activeUserIds.includes(id)
+            ),
+            "New message",
+            `${senderName} sent you a message${conversation.title ? ` in "${conversation.title}"` : ""}.`
+        )
+    }
 
     revalidatePath("/chats")
     return { success: true }
@@ -131,13 +178,12 @@ export async function claimConversationAction(conversationId: string) {
 
     const mentorName = session.user.name ?? session.user.email ?? "A mentor"
     await addSystemMessage(conversationId, `${mentorName} joined the chat.`)
-    await prisma.notification.create({
-        data: {
-            userId: conversation.menteeId,
-            title: "A mentor joined your chat",
-            message: `${mentorName} will help you from here.`,
-        },
-    })
+    await notifyChat(
+        conversationId,
+        [conversation.menteeId],
+        "A mentor joined your chat",
+        `${mentorName} will help you from here.`
+    )
 
     revalidatePath("/chats")
     return { success: true }
@@ -173,7 +219,8 @@ export async function escalateToAdminAction(conversationId: string, note: string
     await addSystemMessage(conversationId, `${mentorName} asked an admin to step in.`)
     await notifyAdmins(
         "Chat escalated to admin",
-        `${mentorName} needs help with ${displayName(conversation.mentee)}: ${trimmed}`
+        `${mentorName} needs help with ${displayName(conversation.mentee)}: ${trimmed}`,
+        conversationId
     )
 
     revalidatePath("/chats")
@@ -228,29 +275,24 @@ export async function assignMentorAction(conversationId: string, mentorId: strin
             ? `An admin moved this chat from ${previousName} to ${mentorName}.`
             : `An admin connected ${mentorName} to this chat.`
     )
-    await prisma.notification.createMany({
-        data: [
-            {
-                userId: mentor.id,
-                title: "Chat assigned to you",
-                message: `An admin paired you with a mentee${conversation.title ? ` on "${conversation.title}"` : ""}.`,
-            },
-            {
-                userId: conversation.menteeId,
-                title: "A mentor joined your chat",
-                message: `${mentorName} will help you from here.`,
-            },
-            ...(conversation.mentorId
-                ? [
-                      {
-                          userId: conversation.mentorId,
-                          title: "Chat reassigned",
-                          message: `An admin moved a chat${conversation.title ? ` ("${conversation.title}")` : ""} to ${mentorName}.`,
-                      },
-                  ]
-                : []),
-        ],
-    })
+    await notifyChat(
+        conversationId,
+        [mentor.id],
+        "Chat assigned to you",
+        `An admin paired you with a mentee${conversation.title ? ` on "${conversation.title}"` : ""}.`
+    )
+    await notifyChat(
+        conversationId,
+        [conversation.menteeId],
+        "A mentor joined your chat",
+        `${mentorName} will help you from here.`
+    )
+    await notifyChat(
+        conversationId,
+        [conversation.mentorId],
+        "Chat reassigned",
+        `An admin moved a chat${conversation.title ? ` ("${conversation.title}")` : ""} to ${mentorName}.`
+    )
     await logAudit(session.user, "Assigned chat mentor", "Conversation", conversationId, mentor.email)
 
     revalidatePath("/chats")
@@ -274,24 +316,22 @@ export async function returnToQueueAction(conversationId: string) {
         conversationId,
         `An admin returned this chat to the open queue. Another mentor will pick it up.`
     )
-    await prisma.notification.create({
-        data: {
-            userId: conversation.mentorId,
-            title: "Chat reassigned",
-            message: `An admin returned a chat${conversation.title ? ` ("${conversation.title}")` : ""} to the open queue.`,
-        },
-    })
+    await notifyChat(
+        conversationId,
+        [conversation.mentorId],
+        "Chat reassigned",
+        `An admin returned a chat${conversation.title ? ` ("${conversation.title}")` : ""} to the open queue.`
+    )
     const mentors = await prisma.user.findMany({
         where: { role: "MENTOR", isActive: true, id: { not: conversation.mentorId } },
         select: { id: true },
     })
-    await prisma.notification.createMany({
-        data: mentors.map((m) => ({
-            userId: m.id,
-            title: "New mentor request",
-            message: `A mentee needs a mentor${conversation.title ? ` about "${conversation.title}"` : ""}.`,
-        })),
-    })
+    await notifyChat(
+        conversationId,
+        mentors.map((m) => m.id),
+        "New mentor request",
+        `A mentee needs a mentor${conversation.title ? ` about "${conversation.title}"` : ""}.`
+    )
     await logAudit(session.user, "Returned chat to queue", "Conversation", conversationId)
 
     revalidatePath("/chats")
@@ -313,15 +353,12 @@ export async function joinConversationAction(conversationId: string) {
 
     const adminName = session.user.name ?? session.user.email ?? "An admin"
     await addSystemMessage(conversationId, `${adminName} (admin) joined the chat.`)
-    await prisma.notification.createMany({
-        data: [conversation.menteeId, conversation.mentorId]
-            .filter((id): id is string => !!id)
-            .map((userId) => ({
-                userId,
-                title: "An admin joined your chat",
-                message: `${adminName} joined${conversation.title ? ` "${conversation.title}"` : " your chat"}.`,
-            })),
-    })
+    await notifyChat(
+        conversationId,
+        [conversation.menteeId, conversation.mentorId],
+        "An admin joined your chat",
+        `${adminName} joined${conversation.title ? ` "${conversation.title}"` : " your chat"}.`
+    )
     await logAudit(session.user, "Joined chat", "Conversation", conversationId)
 
     revalidatePath("/chats")
@@ -360,15 +397,12 @@ export async function resolveEscalationAction(conversationId: string) {
         data: { adminEscalatedAt: null, adminEscalationNote: null },
     })
     await addSystemMessage(conversationId, "An admin marked the escalation as resolved.")
-    if (conversation.mentorId) {
-        await prisma.notification.create({
-            data: {
-                userId: conversation.mentorId,
-                title: "Escalation resolved",
-                message: `An admin resolved your escalation${conversation.title ? ` on "${conversation.title}"` : ""}.`,
-            },
-        })
-    }
+    await notifyChat(
+        conversationId,
+        [conversation.mentorId],
+        "Escalation resolved",
+        `An admin resolved your escalation${conversation.title ? ` on "${conversation.title}"` : ""}.`
+    )
     await logAudit(session.user, "Resolved chat escalation", "Conversation", conversationId)
 
     revalidatePath("/chats")

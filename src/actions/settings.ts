@@ -6,6 +6,9 @@ import { revalidatePath } from "next/cache"
 import { auth, update } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { logAudit } from "@/lib/audit"
+import { queueEmail } from "@/lib/mail"
+import { emailChangedEmail, passwordChangedEmail } from "@/lib/emails"
+import { CLEAR_PASSWORD_TOKEN } from "@/lib/password-tokens"
 import {
     changePasswordSchema,
     updateProfileSchema,
@@ -29,10 +32,24 @@ export async function updateProfileAction(values: UpdateProfileInput) {
         return { error: "A user with this email already exists." }
     }
 
+    const current = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { email: true },
+    })
+    const emailChanged = current && current.email !== parsed.data.email
+
     await prisma.user.update({
         where: { id: session.user.id },
-        data: { name: parsed.data.name, email: parsed.data.email },
+        data: {
+            name: parsed.data.name,
+            email: parsed.data.email,
+            ...(emailChanged ? CLEAR_PASSWORD_TOKEN : {}),
+        },
     })
+
+    if (emailChanged) {
+        queueEmail(current.email, emailChangedEmail(parsed.data.email))
+    }
 
     await logAudit(
         { name: parsed.data.name, email: parsed.data.email },
@@ -71,11 +88,17 @@ export async function changePasswordAction(values: ChangePasswordInput) {
 
     await prisma.user.update({
         where: { id: user.id },
-        data: { password: hashedPassword, mustResetPassword: false },
+        data: {
+            password: hashedPassword,
+            mustResetPassword: false,
+            ...CLEAR_PASSWORD_TOKEN,
+        },
     })
 
     await update({ user: { mustResetPassword: false } })
     await logAudit(user, "Changed own password", "User", user.id)
+
+    queueEmail(user.email, passwordChangedEmail())
 
     return { success: true }
 }

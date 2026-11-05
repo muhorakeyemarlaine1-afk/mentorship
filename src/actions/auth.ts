@@ -6,6 +6,7 @@ import { redirect } from "next/navigation"
 
 import { auth, signIn, signOut, update } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { CLEAR_PASSWORD_TOKEN } from "@/lib/password-tokens"
 import {
     resetPasswordSchema,
     signInSchema,
@@ -52,7 +53,11 @@ export async function resetPasswordAction(values: ResetPasswordInput) {
 
     await prisma.user.update({
         where: { id: session.user.id },
-        data: { password: hashedPassword, mustResetPassword: false },
+        data: {
+            password: hashedPassword,
+            mustResetPassword: false,
+            ...CLEAR_PASSWORD_TOKEN,
+        },
     })
 
     await update({ user: { mustResetPassword: false } })

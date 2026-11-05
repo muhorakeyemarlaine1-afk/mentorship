@@ -4,13 +4,20 @@ import bcrypt from "bcryptjs"
 
 import { prisma } from "@/lib/prisma"
 import { logAudit } from "@/lib/audit"
-import { isEmailConfigured, sendMentorApplicationEmail } from "@/lib/mail"
+import { queueEmail } from "@/lib/mail"
+import {
+    applicationReceivedEmail,
+    mentorApplicationEmail,
+    welcomeEmail,
+} from "@/lib/emails"
 import {
     menteeSignUpSchema,
     mentorApplicationSchema,
     type MenteeSignUpInput,
     type MentorApplicationInput,
 } from "@/lib/validations/application"
+
+const REPEAT_EMAIL_WINDOW_MS = 24 * 60 * 60 * 1000
 
 export async function signUpMenteeAction(values: MenteeSignUpInput) {
     const parsed = menteeSignUpSchema.safeParse(values)
@@ -39,6 +46,8 @@ export async function signUpMenteeAction(values: MenteeSignUpInput) {
 
     await logAudit(null, "Mentee signed up", "Mentee", mentee.id, mentee.email)
 
+    queueEmail(mentee.email, welcomeEmail(mentee.name ?? mentee.email))
+
     return { success: true }
 }
 
@@ -56,6 +65,16 @@ export async function submitMentorApplicationAction(
     if (existingUser) {
         return { error: "An account with this email already exists." }
     }
+
+    // The form is public, so repeat submissions can't be used to flood an
+    // address or the admins' inboxes. The application itself is still saved.
+    const recentApplication = await prisma.mentorApplication.findFirst({
+        where: {
+            email: parsed.data.email,
+            createdAt: { gte: new Date(Date.now() - REPEAT_EMAIL_WINDOW_MS) },
+        },
+        select: { id: true },
+    })
 
     const application = await prisma.mentorApplication.create({
         data: {
@@ -84,22 +103,12 @@ export async function submitMentorApplicationAction(
         })
     }
 
-    const adminEmails = admins
-        .filter((admin) => admin.isActive)
-        .map((admin) => admin.email)
-    if (adminEmails.length > 0 && isEmailConfigured()) {
-        // The application is already saved, so a mail failure shouldn't
-        // surface as a failed submission.
-        try {
-            const appUrl = process.env.APP_URL || "http://localhost:3000"
-            await sendMentorApplicationEmail(
-                adminEmails,
-                application,
-                `${appUrl}/mentors?tab=applications`
-            )
-        } catch (error) {
-            console.error("Failed to send mentor application email", error)
-        }
+    if (!recentApplication) {
+        queueEmail(
+            admins.filter((admin) => admin.isActive).map((admin) => admin.email),
+            mentorApplicationEmail(application)
+        )
+        queueEmail(application.email, applicationReceivedEmail(application.name))
     }
 
     await logAudit(

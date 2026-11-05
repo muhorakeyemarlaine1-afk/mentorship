@@ -1,23 +1,28 @@
 "use server"
 
 import bcrypt from "bcryptjs"
-import crypto from "crypto"
 
 import { prisma } from "@/lib/prisma"
 import { logAudit } from "@/lib/audit"
-import { isEmailConfigured, sendPasswordResetEmail } from "@/lib/mail"
+import {
+    appUrl,
+    isEmailConfigured,
+    queueEmail,
+    sendPasswordResetEmail,
+} from "@/lib/mail"
+import { passwordChangedEmail } from "@/lib/emails"
+import {
+    CLEAR_PASSWORD_TOKEN,
+    RESET_TOKEN_TTL_MS,
+    createPasswordToken,
+    hashPasswordToken,
+} from "@/lib/password-tokens"
 import {
     forgotPasswordSchema,
     resetPasswordSchema,
     type ForgotPasswordInput,
     type ResetPasswordInput,
 } from "@/lib/validations/auth"
-
-const TOKEN_TTL_MS = 60 * 60 * 1000 // 1 hour
-
-function hashToken(token: string) {
-    return crypto.createHash("sha256").update(token).digest("hex")
-}
 
 export async function requestPasswordResetAction(values: ForgotPasswordInput) {
     const parsed = forgotPasswordSchema.safeParse(values)
@@ -34,22 +39,12 @@ export async function requestPasswordResetAction(values: ForgotPasswordInput) {
         return { success: true as const, resetUrl: null }
     }
 
-    const token = crypto.randomBytes(32).toString("base64url")
-    await prisma.user.update({
-        where: { id: user.id },
-        data: {
-            passwordResetTokenHash: hashToken(token),
-            passwordResetTokenExpiresAt: new Date(Date.now() + TOKEN_TTL_MS),
-        },
-    })
+    const resetPath = await createPasswordToken(user.id, RESET_TOKEN_TTL_MS)
 
     await logAudit(null, "Requested password reset", "User", user.id)
 
-    const resetPath = `/reset-password/${token}`
-
     if (isEmailConfigured()) {
-        const appUrl = process.env.APP_URL || "http://localhost:3000"
-        await sendPasswordResetEmail(user.email, `${appUrl}${resetPath}`)
+        await sendPasswordResetEmail(user.email, appUrl(resetPath))
         return { success: true as const, resetUrl: null }
     }
 
@@ -66,7 +61,7 @@ export async function resetPasswordWithTokenAction(
         return { error: parsed.error.issues[0]?.message ?? "Invalid input." }
     }
 
-    const tokenHash = hashToken(token)
+    const tokenHash = hashPasswordToken(token)
     const user = await prisma.user.findFirst({
         where: {
             passwordResetTokenHash: tokenHash,
@@ -85,12 +80,16 @@ export async function resetPasswordWithTokenAction(
         data: {
             password: hashedPassword,
             mustResetPassword: false,
-            passwordResetTokenHash: null,
-            passwordResetTokenExpiresAt: null,
+            ...CLEAR_PASSWORD_TOKEN,
         },
     })
 
     await logAudit(null, "Reset password via link", "User", user.id)
+
+    // An invited user setting their first password isn't a change to report.
+    if (!user.mustResetPassword) {
+        queueEmail(user.email, passwordChangedEmail())
+    }
 
     return { success: true }
 }

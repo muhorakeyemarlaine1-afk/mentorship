@@ -1,4 +1,9 @@
+import { notifyUsers } from "@/lib/notify"
 import { prisma } from "@/lib/prisma"
+
+export function chatPath(conversationId: string) {
+    return `/chats?conversation=${conversationId}`
+}
 
 /**
  * Hands an AI conversation over to the humans by opening a ticket in the open
@@ -35,13 +40,15 @@ export async function escalateConversation(conversationId: string) {
         where: { role: { in: ["MENTOR", "ADMIN"] }, isActive: true },
         select: { id: true },
     })
-    await prisma.notification.createMany({
-        data: staff.map((user) => ({
-            userId: user.id,
+    await notifyUsers(
+        staff.map((user) => user.id),
+        {
             title: "New mentor request",
             message: `${menteeName} wants to talk to a mentor${topic}.`,
-        })),
-    })
+            path: chatPath(conversationId),
+            actionLabel: "Open the chat",
+        }
+    )
 }
 
 /** Records a chat event (claims, assignments, escalations) in the thread. */
@@ -55,14 +62,24 @@ export async function addSystemMessage(conversationId: string, content: string) 
     })
 }
 
-export async function notifyAdmins(title: string, message: string) {
+export async function notifyAdmins(
+    title: string,
+    message: string,
+    conversationId: string
+) {
     const admins = await prisma.user.findMany({
         where: { role: "ADMIN", isActive: true },
         select: { id: true },
     })
-    await prisma.notification.createMany({
-        data: admins.map((admin) => ({ userId: admin.id, title, message })),
-    })
+    await notifyUsers(
+        admins.map((admin) => admin.id),
+        {
+            title,
+            message,
+            path: chatPath(conversationId),
+            actionLabel: "Open the chat",
+        }
+    )
 }
 
 export function displayName(user: { name: string | null; email: string } | null) {

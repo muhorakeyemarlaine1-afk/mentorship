@@ -3,8 +3,8 @@
 import { ReactNode } from "react"
 import { useSearchParams } from "next/navigation"
 
-// Both panels stay mounted so switching tabs can't lose the temporary password
-// shown after approving an application. The tab lives in the URL via
+// Both panels stay mounted so switching tabs can't lose the invite link shown
+// when an approval email fails. The tab lives in the URL via
 // pushState, which keeps /mentors?tab=applications linkable without a remount.
 export function MentorsTabs({
     pendingApplications,

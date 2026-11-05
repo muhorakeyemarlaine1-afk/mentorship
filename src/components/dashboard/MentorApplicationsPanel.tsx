@@ -27,9 +27,9 @@ export function MentorApplicationsPanel({
     const [isPending, startTransition] = useTransition()
     const [pendingId, setPendingId] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
-    const [credentials, setCredentials] = useState<{
+    const [approved, setApproved] = useState<{
         email: string
-        tempPassword: string
+        inviteUrl: string | null
     } | null>(null)
 
     function approve(id: string) {
@@ -39,9 +39,9 @@ export function MentorApplicationsPanel({
             const result = await approveMentorApplicationAction(id)
             if (result?.error) setError(result.error)
             if (result?.success) {
-                setCredentials({
+                setApproved({
                     email: result.email!,
-                    tempPassword: result.tempPassword!,
+                    inviteUrl: result.inviteUrl ?? null,
                 })
             }
             setPendingId(null)
@@ -74,20 +74,27 @@ export function MentorApplicationsPanel({
                 </p>
             )}
 
-            {credentials && (
+            {approved && (
                 <div className="mb-4 text-sm bg-[#EFEAFF] border border-[#D9CBFF] rounded-xl px-4 py-3">
                     <p className="font-semibold text-[#171139] mb-1">
-                        Mentor account created for {credentials.email}
+                        Mentor account created for {approved.email}
                     </p>
-                    <p className="text-[#6B6690]">
-                        Temporary password (share this with them — it won&apos;t
-                        be shown again):{" "}
-                        <span className="font-mono font-semibold text-[#171139]">
-                            {credentials.tempPassword}
-                        </span>
-                    </p>
+                    {approved.inviteUrl ? (
+                        <p className="text-[#6B6690]">
+                            The invitation email couldn&apos;t be sent. Share
+                            this link with them instead. It expires in 7 days
+                            and won&apos;t be shown again:{" "}
+                            <span className="font-mono font-semibold text-[#171139] break-all">
+                                {approved.inviteUrl}
+                            </span>
+                        </p>
+                    ) : (
+                        <p className="text-[#6B6690]">
+                            We emailed them a link to set their password.
+                        </p>
+                    )}
                     <button
-                        onClick={() => setCredentials(null)}
+                        onClick={() => setApproved(null)}
                         className="mt-2 text-xs font-semibold text-[#6C4FE0] hover:underline"
                     >
                         Dismiss

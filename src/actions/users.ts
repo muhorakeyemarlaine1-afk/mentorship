@@ -7,6 +7,18 @@ import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/require-admin"
 import { logAudit } from "@/lib/audit"
+import { appUrl, queueEmail, trySendEmail } from "@/lib/mail"
+import {
+    accountStatusEmail,
+    applicationRejectedEmail,
+    inviteEmail,
+    roleChangedMessage,
+} from "@/lib/emails"
+import { notifyUsers } from "@/lib/notify"
+import {
+    INVITE_TOKEN_TTL_MS,
+    createPasswordToken,
+} from "@/lib/password-tokens"
 
 const VALID_ROLES = ["ADMIN", "MENTOR", "MENTEE"] as const
 type UserRole = (typeof VALID_ROLES)[number]
@@ -22,8 +34,22 @@ export async function updateUserRoleAction(id: string, role: UserRole) {
         return { error: "You can't change your own role." }
     }
 
+    const current = await prisma.user.findUnique({
+        where: { id },
+        select: { role: true },
+    })
+
     await prisma.user.update({ where: { id }, data: { role } })
     await logAudit(session.user, `Changed role to ${role}`, "User", id)
+
+    if (current && current.role !== role) {
+        await notifyUsers([id], {
+            title: "Your role was changed",
+            message: roleChangedMessage(role),
+            path: "/dashboard",
+            actionLabel: "Open your dashboard",
+        })
+    }
 
     revalidatePath("/users-roles")
     return { success: true }
@@ -36,7 +62,19 @@ export async function setUserActiveAction(id: string, isActive: boolean) {
         return { error: "You can't deactivate your own account." }
     }
 
-    await prisma.user.update({ where: { id }, data: { isActive } })
+    const { count } = await prisma.user.updateMany({
+        where: { id, isActive: !isActive },
+        data: { isActive },
+    })
+
+    if (count > 0) {
+        const user = await prisma.user.findUnique({
+            where: { id },
+            select: { email: true },
+        })
+        if (user) queueEmail(user.email, accountStatusEmail(isActive))
+    }
+
     await logAudit(
         session.user,
         isActive ? "Set user active" : "Set user inactive",
@@ -62,8 +100,9 @@ export async function deleteUserAction(id: string) {
     return { success: true }
 }
 
-function generateTempPassword() {
-    return crypto.randomBytes(9).toString("base64url")
+// Never shared: the mentor chooses their own through the invite link.
+function generatePlaceholderPassword() {
+    return crypto.randomBytes(32).toString("base64url")
 }
 
 export async function approveMentorApplicationAction(applicationId: string) {
@@ -89,8 +128,7 @@ export async function approveMentorApplicationAction(applicationId: string) {
         }
     }
 
-    const tempPassword = generateTempPassword()
-    const hashedPassword = await bcrypt.hash(tempPassword, 10)
+    const hashedPassword = await bcrypt.hash(generatePlaceholderPassword(), 10)
 
     const mentor = await prisma.user.create({
         data: {
@@ -125,9 +163,20 @@ export async function approveMentorApplicationAction(applicationId: string) {
         mentor.email
     )
 
+    const invitePath = await createPasswordToken(mentor.id, INVITE_TOKEN_TTL_MS)
+    const emailed = await trySendEmail(
+        mentor.email,
+        inviteEmail(mentor.name, "MENTOR", invitePath)
+    )
+
     revalidatePath("/users-roles")
     revalidatePath("/mentors")
-    return { success: true, email: mentor.email, tempPassword }
+    return {
+        success: true,
+        email: mentor.email,
+        // Only exposed when the email didn't go out, so the admin can pass it on.
+        inviteUrl: emailed ? null : appUrl(invitePath),
+    }
 }
 
 export async function rejectMentorApplicationAction(applicationId: string) {
@@ -140,6 +189,14 @@ export async function rejectMentorApplicationAction(applicationId: string) {
 
     if (count === 0) {
         return { error: "Application not found or already reviewed." }
+    }
+
+    const application = await prisma.mentorApplication.findUnique({
+        where: { id: applicationId },
+        select: { name: true, email: true },
+    })
+    if (application) {
+        queueEmail(application.email, applicationRejectedEmail(application.name))
     }
 
     await logAudit(
