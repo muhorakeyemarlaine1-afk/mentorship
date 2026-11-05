@@ -1104,11 +1104,6 @@ export default function App() {
                                                 <div className="text-xs font-semibold uppercase tracking-wider mb-3 text-[#1B4B8A]">
                                                     {t.category}
                                                 </div>
-                                                {t.title && (
-                                                    <div className="font-bold text-sm mb-2 text-[#0D1F3C]">
-                                                        {t.title}
-                                                    </div>
-                                                )}
                                                 <p className="text-sm leading-relaxed line-clamp-6 mb-4 text-[#4A6080]">
                                                     &ldquo;{t.text}&rdquo;
                                                 </p>

@@ -2,7 +2,7 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 
 const LOGO_URL =
-    "https://globalyouthemerge.org/wp-content/uploads/2025/05/Logo-global-youth.png"
+    "https://globalyouthemerge.org/wp-content/uploads/2025/04/International-Youth-Support-Logo.jpg"
 
 const FOOTER_LINKS = [
     { label: "Home", href: "/" },

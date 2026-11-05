@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation"
 import { Menubar, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar"
 
 const LOGO_URL =
-    "https://globalyouthemerge.org/wp-content/uploads/2025/05/Logo-global-youth.png"
+    "https://globalyouthemerge.org/wp-content/uploads/2025/04/International-Youth-Support-Logo.jpg"
 
 const NAV_LINKS = [
     { label: "Home", href: "/#home" },
