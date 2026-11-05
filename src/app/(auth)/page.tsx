@@ -6,6 +6,13 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Navbar } from "@/components/Navbar"
 import { Footer } from "@/components/Footer"
 import { GetStartedForm } from "@/components/auth/GetStartedForm"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 
 const CATEGORIES = [
     {
@@ -418,22 +425,39 @@ const TESTIMONIALS = [
         name: "Thiery Muhoza",
         location: "Bujumbura, Burundi",
         age: 23,
-        text: "Thiery began as a security guard at Interbank Burundi after leaving school in Year 6. Through GYE mentorship and support for driving lessons, he obtained his driving licence and moved toward the livelihood he had always wanted. Today, he owns and operates his own taxi and supports his family.",
+        title: "My Journey: From Security Guard to Taxi Owner",
+        text: "I left school in Class 6, not because I lacked dreams, but because life demanded that I take responsibility for my younger siblings. I moved to town in search of work and eventually secured a job as a security guard at Interbank Burundi. Life was difficult, but deep down, I had one dream: to become a professional driver. I had no driving experience, no money for driving lessons and no clear path towards achieving that dream. Then, life gave me an unexpected opportunity. The CEO of Global Youth Emerge used to visit the bank where I worked. One day, I gathered the courage to share my struggles with her and told her about my dream of becoming a driver. She asked whether I knew how to drive. I honestly told her I did not. Rather than dismissing my dream, she listened, encouraged me and asked what I needed to make it happen. The very next day, she arranged for someone to help me enrol in a driving school. Through GYE's mentorship and support, I attended driving lessons, obtained my driving licence and took my first real step towards the life I had always imagined.\n\nToday, I am proud to own and operate my own taxi. I can support my family, contribute to my siblings' future and earn a living through something I once only dreamed about. Today, I also support and encourage other young people facing challenges similar to mine, helping them see that their circumstances do not have to define their future. I am able to do this because Global Youth Emerge believed in me, gave me an opportunity and helped me turn my dream into reality. Now, I want to extend that same opportunity to others.",
         category: "Livelihoods & Mentorship",
         img: "/images/home-1.jpg",
     },
     {
         name: "Peter Karanja",
         location: "Kayole, Nairobi",
-        text: "Peter had been living on the streets and battling addiction. GYE approached him, listened without judgment, provided a safe place to stay, clean clothes, counselling three times a week, and consistent mentorship. Within three months, he overcame addiction, began doing small jobs, rebuilt his confidence and reconciled with his parents.",
+        title: "My Journey: Finding Hope and a Second Chance",
+        text: "When I lost my parents, my life changed completely. I was left without the support and stability I once knew, and I had no choice but to leave home and find a way to survive on the streets. I went through a difficult period in my life when I was living on the streets and struggling with addiction. I had lost direction and was finding it difficult to see a way forward. When Global Youth Emerge (GYE) approached me, they did not judge me or define me by my circumstances. They listened to my story and gave me something I desperately needed: a chance to start again. Through GYE, I received a safe place to stay, clean clothes, counselling three times a week, and consistent mentorship and support.\n\nWithin three months, my life began to change. I overcame my addiction, started taking on small jobs, gradually rebuilt my confidence, and started a small business where I speak to other young men and women in the street and connect them to Global Youth Emerge for training. Today, I have hope for the future and a renewed sense of purpose. My experience has taught me that no matter how difficult life becomes, everyone deserves a second chance.",
         category: "Mentorship & Second Chances",
         img: "/images/home-2.jpg",
+    },
+    {
+        name: "Akeza",
+        location: "Makamba, Burundi",
+        text: "Coming from a poor farming family, I faced many challenges in accessing education and finding opportunities to build my future. Through Global Youth Emerge, I received career guidance, mentorship and entrepreneurship training that equipped me with practical skills in business planning, financial management and marketing. With the support of a small grant, I was able to establish my own agribusiness, which has since created two employment opportunities for other young people. Today, I am proud to return as a mentor, sharing my experience and encouraging other young people to believe in their potential and create opportunities for themselves and happy that I was able to go back to school on my own and support my younger ones.",
+        category: "Education, Mentorship & Enterprise",
+        img: "/images/Blog1.jpg",
+    },
+    {
+        name: "Mercy",
+        location: "Eastlands, Nairobi",
+        age: 23,
+        text: "I have always had a passion for fashion, but after leaving college, I lacked the financial resources to turn my dream into a reality. I did business administration but was unemployed for three years before I heard of Global Youth Emerge. Through Global Youth Emerge's Youth Business Empowerment Program, I received financial literacy training, startup funding and mentorship in branding, customer service and marketing. With this support, I was able to establish and grow my fashion business into a small fashion house. Today, my business employs two other young women who were previously unemployed. My journey has taught me that with the right support, determination and an opportunity, a passion can become a sustainable business that creates opportunities for others too.",
+        category: "Women & Entrepreneurship",
+        img: "/images/1.jpg",
     },
     {
         name: "Mary Otieno",
         location: "Kibera, Nairobi",
         age: 28,
-        text: "Mary is a widow and single mother of three. GYE helped stabilize her situation, supported her rent, provided business training and continued mentorship. Her fish stall grew into a stronger, sustainable business. Today she runs two businesses, employs two people and has all three children back in school.",
+        text: "After my husband passed away, I decided to return to our home in Kisumu with my children, hoping we could find a fresh start. Unfortunately, life became even more difficult as I faced challenges with my in-laws, leaving me struggling to provide for my children and secure a stable future for our family. At a time when I felt overwhelmed, Global Youth Emerge came into my life. Through their support, I received assistance with rent, business training and continuous mentorship. This gave me the stability and confidence I needed to rebuild my life and strengthen my fish business. With time, my business grew, allowing me to establish a second business and create employment for two other people. Today, all three of my children are back in school, and I can provide for them with greater confidence and stability.\n\nMy journey has taught me that losing everything does not mean losing the opportunity to start again. With the right support, guidance and determination, a woman can rebuild her life, create opportunities for others and give her children a better future. I am grateful that GYE gave me the chance to begin again.",
         category: "Entrepreneurship & Women's Empowerment",
         img: "/images/home-3.jpeg",
     },
@@ -441,24 +465,9 @@ const TESTIMONIALS = [
         name: "David",
         location: "Kayole, Nairobi",
         age: 19,
-        text: "David started repairing phones on a wooden crate with borrowed tools. After GYE's Youth Skills & Business Training Workshop, he received hands-on training in electronics repair, business management, customer service and bookkeeping. A startup grant helped him open “David's Corner”, support his mother, help his sister return to school and train two other young men.",
+        text: "I started repairing phones using borrowed tools and a wooden crate as my workstation. I had the skills and the determination, but I lacked the resources and business knowledge to turn my small activity into a sustainable source of income. Through Global Youth Emerge's Youth Skills & Business Training Workshop, I received practical training in electronics repair, business management, customer service and bookkeeping. With the support of a startup grant, I was able to establish my own business, ‘David's Corner’. Today, I can support my mother, help my sister continue her education and provide practical training to two other young men. What started as a small repair activity has become an opportunity not only to transform my life but also to create opportunities for others.",
         category: "Skills, Enterprise & Mentorship",
         img: "/images/Youth3.jpg",
-    },
-    {
-        name: "Mercy",
-        location: "Eastlands, Nairobi",
-        age: 23,
-        text: "Mercy had a passion for fashion but lacked capital after leaving college. Through GYE's Youth Business Empowerment Program, she received financial literacy training, startup financing and mentorship in branding, customer service and marketing. Her fashion business grew into a small fashion house, and she hired two other young women who had been unemployed.",
-        category: "Women & Entrepreneurship",
-        img: "/images/1.jpg",
-    },
-    {
-        name: "Akeza",
-        location: "Makamba, Burundi",
-        text: "Akeza came from a farming family and faced limited opportunities for university. GYE connected her to career guidance, mentorship and entrepreneurship training, where she learned business planning, financial management and marketing. With a small grant she launched an agri-business, created two jobs and later returned as a mentor to inspire other young people.",
-        category: "Education, Mentorship & Enterprise",
-        img: "/images/Blog1.jpg",
     },
 ]
 
@@ -502,6 +511,10 @@ export default function App() {
     // its 0% keyframe), `page` is only the last manually chosen page — it
     // does not track live position during autoplay.
     const [storyRestart, setStoryRestart] = useState({ key: 0, page: 0 })
+    // Kept separately from `storyOpen` so the story stays rendered while the
+    // dialog animates closed.
+    const [activeStory, setActiveStory] = useState(TESTIMONIALS[0])
+    const [storyOpen, setStoryOpen] = useState(false)
 
     const jumpToStoryPage = (page: number) =>
         setStoryRestart((s) => ({ key: s.key + 1, page }))
@@ -1000,6 +1013,45 @@ export default function App() {
                     </div>
                 </div>
 
+                <Dialog open={storyOpen} onOpenChange={setStoryOpen}>
+                    <DialogContent className="bg-white p-6 sm:max-w-xl">
+                        <DialogHeader>
+                            <div className="flex items-center gap-3 pr-8">
+                                <img
+                                    src={activeStory.img}
+                                    alt=""
+                                    className="w-12 h-12 rounded-full object-cover bg-[#EEF3FA]"
+                                />
+                                <div>
+                                    <DialogTitle className="font-bold text-[#0D1F3C]">
+                                        {activeStory.name}
+                                    </DialogTitle>
+                                    <div className="text-xs mt-1 text-[#9CAFC8]">
+                                        {activeStory.location}
+                                        {activeStory.age
+                                            ? ` · Age ${activeStory.age}`
+                                            : ""}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="text-xs font-semibold uppercase tracking-wider mt-2 text-[#1B4B8A]">
+                                {activeStory.category}
+                            </div>
+                            {activeStory.title && (
+                                <div className="font-bold text-[#0D1F3C]">
+                                    {activeStory.title}
+                                </div>
+                            )}
+                        </DialogHeader>
+                        <DialogDescription
+                            render={<div />}
+                            className="max-h-[60vh] overflow-y-auto whitespace-pre-line leading-relaxed text-[#4A6080]"
+                        >
+                            &ldquo;{activeStory.text}&rdquo;
+                        </DialogDescription>
+                    </DialogContent>
+                </Dialog>
+
                 <div className="relative">
                     <div className="overflow-hidden rounded-2xl">
                         <div
@@ -1026,7 +1078,7 @@ export default function App() {
                                         {page.map((t) => (
                                             <div
                                                 key={t.name}
-                                                className="rounded-2xl p-7 border bg-white"
+                                                className="flex flex-col rounded-2xl p-7 border bg-white"
                                                 style={{
                                                     borderColor: "#E2EAF4",
                                                 }}
@@ -1052,9 +1104,31 @@ export default function App() {
                                                 <div className="text-xs font-semibold uppercase tracking-wider mb-3 text-[#1B4B8A]">
                                                     {t.category}
                                                 </div>
-                                                <p className="text-sm leading-relaxed text-[#4A6080]">
+                                                {t.title && (
+                                                    <div className="font-bold text-sm mb-2 text-[#0D1F3C]">
+                                                        {t.title}
+                                                    </div>
+                                                )}
+                                                <p className="text-sm leading-relaxed line-clamp-6 mb-4 text-[#4A6080]">
                                                     &ldquo;{t.text}&rdquo;
                                                 </p>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setActiveStory(t)
+                                                        setStoryOpen(true)
+                                                    }}
+                                                    tabIndex={
+                                                        i >=
+                                                        TESTIMONIAL_PAGES.length
+                                                            ? -1
+                                                            : undefined
+                                                    }
+                                                    aria-label={`Read ${t.name}'s full story`}
+                                                    className="mt-auto self-start text-sm font-bold text-[#E07830] hover:underline"
+                                                >
+                                                    Read full story
+                                                </button>
                                             </div>
                                         ))}
                                     </div>
