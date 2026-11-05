@@ -51,6 +51,63 @@ export async function sendEmail({
     })
 }
 
+function escapeHtml(value: string) {
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;")
+}
+
+export async function sendMentorApplicationEmail(
+    to: string[],
+    application: {
+        name: string
+        email: string
+        currentRole: string | null
+        organization: string | null
+        category: string | null
+        yearsExperience: string | null
+        motivation: string | null
+        linkedin: string | null
+    },
+    reviewUrl: string
+) {
+    const details = [
+        ["Name", application.name],
+        ["Email", application.email],
+        ["Current role", application.currentRole],
+        ["Organization", application.organization],
+        ["Category", application.category],
+        ["Experience", application.yearsExperience],
+        ["LinkedIn", application.linkedin],
+        ["Motivation", application.motivation],
+    ].filter((row): row is [string, string] => Boolean(row[1]))
+
+    // Every value here comes from a public form, so it's escaped and never
+    // used as a link target.
+    await sendEmail({
+        to: to.join(", "),
+        subject: `New mentor application: ${application.name}`,
+        text: `${application.name} applied to become a mentor.\n\n${details
+            .map(([label, value]) => `${label}: ${value}`)
+            .join("\n")}\n\nReview the application: ${reviewUrl}`,
+        html: `
+            <p>${escapeHtml(application.name)} applied to become a mentor.</p>
+            <ul>
+                ${details
+                    .map(
+                        ([label, value]) =>
+                            `<li><strong>${label}:</strong> ${escapeHtml(value)}</li>`
+                    )
+                    .join("")}
+            </ul>
+            <p><a href="${reviewUrl}">Review the application</a></p>
+        `,
+    })
+}
+
 export async function sendPasswordResetEmail(to: string, resetUrl: string) {
     await sendEmail({
         to,

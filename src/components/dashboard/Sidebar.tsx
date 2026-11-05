@@ -30,6 +30,7 @@ interface NavItem {
 function buildMainNav(
     role: "ADMIN" | "MENTOR" | "MENTEE",
     unreadMessages: number,
+    pendingApplications: number,
 ): NavItem[] {
     const items: NavItem[] = [
         { label: "Dashboard", href: "/dashboard", icon: HomeIcon },
@@ -37,7 +38,12 @@ function buildMainNav(
 
     if (role === "ADMIN") {
         items.push(
-            { label: "Mentors", href: "/mentors", icon: UsersIcon },
+            {
+                label: "Mentors",
+                href: "/mentors",
+                icon: UsersIcon,
+                badge: pendingApplications || undefined,
+            },
             { label: "Mentees", href: "/mentees", icon: UserIcon },
         )
     }
@@ -67,14 +73,9 @@ function buildMainNav(
     return items
 }
 
-function buildAdminNav(pendingApplications: number): NavItem[] {
+function buildAdminNav(): NavItem[] {
     return [
-        {
-            label: "Users & Roles",
-            href: "/users-roles",
-            icon: ShieldIcon,
-            badge: pendingApplications || undefined,
-        },
+        { label: "Users & Roles", href: "/users-roles", icon: ShieldIcon },
         { label: "Billing & Plans", href: "/billing", icon: CreditCardIcon },
         { label: "Audit Logs", href: "/audit-logs", icon: FileTextIcon },
     ]
@@ -128,8 +129,8 @@ export function Sidebar({
     const isActive = (href: string) =>
         pathname === href || pathname.startsWith(`${href}/`)
 
-    const mainNav = buildMainNav(user.role, unreadMessages)
-    const adminNav = buildAdminNav(pendingApplications)
+    const mainNav = buildMainNav(user.role, unreadMessages, pendingApplications)
+    const adminNav = buildAdminNav()
 
     return (
         <aside className="hidden lg:flex lg:flex-col w-64 shrink-0 h-screen sticky top-0 bg-[#1C1440] text-white">

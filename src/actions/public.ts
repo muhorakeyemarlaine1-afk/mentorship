@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs"
 
 import { prisma } from "@/lib/prisma"
 import { logAudit } from "@/lib/audit"
+import { isEmailConfigured, sendMentorApplicationEmail } from "@/lib/mail"
 import {
     menteeSignUpSchema,
     mentorApplicationSchema,
@@ -71,7 +72,7 @@ export async function submitMentorApplicationAction(
 
     const admins = await prisma.user.findMany({
         where: { role: "ADMIN" },
-        select: { id: true },
+        select: { id: true, email: true, isActive: true },
     })
     if (admins.length > 0) {
         await prisma.notification.createMany({
@@ -81,6 +82,24 @@ export async function submitMentorApplicationAction(
                 message: `${application.name} applied to become a mentor.`,
             })),
         })
+    }
+
+    const adminEmails = admins
+        .filter((admin) => admin.isActive)
+        .map((admin) => admin.email)
+    if (adminEmails.length > 0 && isEmailConfigured()) {
+        // The application is already saved, so a mail failure shouldn't
+        // surface as a failed submission.
+        try {
+            const appUrl = process.env.APP_URL || "http://localhost:3000"
+            await sendMentorApplicationEmail(
+                adminEmails,
+                application,
+                `${appUrl}/mentors?tab=applications`
+            )
+        } catch (error) {
+            console.error("Failed to send mentor application email", error)
+        }
     }
 
     await logAudit(

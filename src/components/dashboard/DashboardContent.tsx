@@ -506,7 +506,7 @@ export function DashboardContent({
                         awaiting your review.
                     </p>
                     <Link
-                        href="/users-roles"
+                        href="/mentors?tab=applications"
                         className="text-sm font-semibold text-[#171139] border border-[#EDEBF6] rounded-full px-4 py-2 hover:bg-[#F6F7FB] transition-colors shrink-0"
                     >
                         Review Now

@@ -149,6 +149,6 @@ export async function rejectMentorApplicationAction(applicationId: string) {
         applicationId
     )
 
-    revalidatePath("/users-roles")
+    revalidatePath("/mentors")
     return { success: true }
 }

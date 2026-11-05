@@ -32,8 +32,6 @@ export function MentorApplicationsPanel({
         tempPassword: string
     } | null>(null)
 
-    if (applications.length === 0 && !credentials && !error) return null
-
     function approve(id: string) {
         setError(null)
         setPendingId(id)
@@ -95,6 +93,12 @@ export function MentorApplicationsPanel({
                         Dismiss
                     </button>
                 </div>
+            )}
+
+            {applications.length === 0 && (
+                <p className="py-10 text-center text-sm text-[#6B6690]">
+                    No applications to review right now.
+                </p>
             )}
 
             <div className="flex flex-col gap-3">
